@@ -2,11 +2,7 @@
 
 import itertools
 import exceptions
-
-p = [pp for pp in itertools.permutations([1,2,3])]
-dir(p)
-type(p)
-print p
+from collections import namedtuple
 
 # convert ensemble name to ID thru a global dictionary getID
 
@@ -84,13 +80,13 @@ def getChildren(node, allPaths):
     out = []
     for path in allPaths:
         if node2str(path).startswith(node2str(node)):
-            for cnt, endpoint in enumerate(path):
-                if not endpoint == node[cnt]:
-                    # first endpoint who differs,
-                    # that the repr of a kid. Put in the backpack.
-                    out.append(path[:cnt])
-                    break
+            out.append(path[:(len(node) + 1)])
     return out
+
+assert(getChildren(['a', 'b'], genMap(['a', 'b', 'c'])) ==
+       [('a', 'b', 'c')])
+assert(getChildren(['a', 'b'], genMap(['a', 'b', 'c', 'd'])) ==
+       [('a', 'b', 'c'), ('a', 'b', 'd')])
 
 def node2str(node):
     # node is a list of IDs indentifying the node from the bottom
@@ -99,13 +95,16 @@ def node2str(node):
     # Note: they're numerical IDs, so no risk of clashes with char '/'
     return '/'.join(map(str, node))
 
-
 def genMap(IDList):
     return [p for p in itertools.permutations(IDList)]
+
+assert(genMap(['a', 'b', 'c']) ==
+       [('a', 'b', 'c'), ('a', 'c', 'b'), ('b', 'a', 'c'),
+        ('b', 'c', 'a'), ('c', 'a', 'b'), ('c', 'b', 'a')])
 
 paths = genMap(['A', 'B', 'C', 'D'])
 slice = namedtuple('slice', ['node', 'cardi', 'addiInfo'])
 
-def facto(inters, subUns, interMap):
+#def facto(inters, subUns, interMap):
     
     
