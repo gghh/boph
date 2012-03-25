@@ -101,7 +101,7 @@ def getChildren(node, allPaths):
     for path in allPaths:
         if len(path) > len(node) and \
                 node2str(path).startswith(node2str(node)):
-            print 'path:', path, 'node:', node # DBG
+            # print 'path:', path, 'node:', node # DBG
             # I need to give also the continuation of the
             # in order to know, later, if it's target-free
             out.append( (path[:(len(node) + 1)], path[(len(node) + 1):]) )
@@ -159,16 +159,25 @@ def facto(nd, subUns, target, lvl, interMap, numSet):
     #
     # I need numSet to know if I am at the end of run
     if len(nd) == numSet-1 and not target in nd:
-        print 'subun:', subUns
+        print 'Termination:', subUns
         # all subunions, accumulated, get finally into this
         return [endpoint(node=nd, cardi=getCard(nd),
                     addiInfo=[subun(name=nd, level=lvl)] + subUns)]
     else:
         out = [endpoint(node=nd, cardi=getCard(nd),
-                        addiInfo=[subun(name=nd, level=lvl)])]
+                        addiInfo=subUns)]
+        print 'recursion. Current subunions:', subUns
         for child in getChildrByTarget(nd, interMap, target):
             print 'child:', child
             out += facto(child, [subun(name=nd, level=lvl)] + subUns,
                          target, lvl+1, interMap, numSet)
         return out
 
+# maybe level are to be raised by one, and empty must be formalized more,
+# but it looks good
+assert(facto(['b'], [[]], 'a', 0, genMap(['a', 'b', 'c']), 3) ==
+       [endpoint(node=['b'], cardi=1, addiInfo=[[]]),
+        endpoint(node=('b', 'c'), cardi=1,
+                 addiInfo=[subun(name=('b', 'c'), level=1),
+                           subun(name=['b'], level=0),
+                           []])])
