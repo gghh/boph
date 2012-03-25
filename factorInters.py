@@ -101,7 +101,7 @@ def getChildren(node, allPaths):
     for path in allPaths:
         if len(path) > len(node) and \
                 node2str(path).startswith(node2str(node)):
-            # print 'path:', path, 'node:', node # DBG
+            print 'path:', path, 'node:', node # DBG
             # I need to give also the continuation of the
             # in order to know, later, if it's target-free
             out.append( (path[:(len(node) + 1)], path[(len(node) + 1):]) )
@@ -134,9 +134,15 @@ def getChildrByTarget(node, allPaths, target):
     # also the 'current endpoint'; what if the target is there?
     return [c[0] for c in getChildren(node, allPaths)
             if not target in (c[0][-1],) + c[1]]
+ #   for c in getChildren(node, allPaths):
+ #       print 'current node:', node
+ #       print 'child allinfo:', c
+ #       print 'target:', target
+ #       print 'just child:', c[0]
+ #       print 'postfix (cont):', (c[0][-1],) + c[1]
 
-assert(getChildrByTarget(['b'], genMap(['a', 'b', 'c', 'd']), 'a') ==
-       [('b', 'c'), ('b', 'd')])
+#assert(getChildrByTarget(['b'], genMap(['a', 'b', 'c', 'd']), 'a') ==
+#       [('b', 'c'), ('b', 'd')])
 
 endpoint = namedtuple('endpoint', ['node', 'cardi', 'addiInfo'])
 subun = namedtuple('subun', ['name', 'level'])
@@ -144,21 +150,25 @@ subun = namedtuple('subun', ['name', 'level'])
 # mock function
 getCard = lambda x: 1
 
-def facto(nd, subUns, target, lvl, interMap):
+def facto(nd, subUns, target, lvl, interMap, numSet):
     # note: node are ident by path from the bottm,
     # so it isn't real clear how to refer to the lower terminal
     # which, strictly speaking, is the empty.
     # You know what? I can launch N instances, where N is
     # the number of my ensembles. Then I join the result.
-    if nd == target:
+    #
+    # I need numSet to know if I am at the end of run
+    if len(nd) == numSet-1 and not target in nd:
+        print 'subun:', subUns
+        # all subunions, accumulated, get finally into this
         return [endpoint(node=nd, cardi=getCard(nd),
                     addiInfo=[subun(name=nd, level=lvl)] + subUns)]
     else:
         out = [endpoint(node=nd, cardi=getCard(nd),
                         addiInfo=[subun(name=nd, level=lvl)])]
         for child in getChildrByTarget(nd, interMap, target):
-            out += facto(child, [subun(name=nd, level=lvl),
-                                 subun(name=child, level=lvl+1)],
-                         target, lvl+1, interMap)
+            print 'child:', child
+            out += facto(child, [subun(name=nd, level=lvl)] + subUns,
+                         target, lvl+1, interMap, numSet)
         return out
 
