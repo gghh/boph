@@ -138,8 +138,27 @@ def getChildrByTarget(node, allPaths, target):
 assert(getChildrByTarget(['b'], genMap(['a', 'b', 'c', 'd']), 'a') ==
        [('b', 'c'), ('b', 'd')])
 
-slice = namedtuple('slice', ['node', 'cardi', 'addiInfo'])
+endpoint = namedtuple('endpoint', ['node', 'cardi', 'addiInfo'])
+subun = namedtuple('subun', ['name', 'level'])
 
-#def facto(inters, subUns, interMap):
-    
-    
+# mock function
+getCard = lambda x: 1
+
+def facto(nd, subUns, target, lvl, interMap):
+    # note: node are ident by path from the bottm,
+    # so it isn't real clear how to refer to the lower terminal
+    # which, strictly speaking, is the empty.
+    # You know what? I can launch N instances, where N is
+    # the number of my ensembles. Then I join the result.
+    if nd == target:
+        return [endpoint(node=nd, cardi=getCard(nd),
+                    addiInfo=[subun(name=nd, level=lvl)] + subUns)]
+    else:
+        out = [endpoint(node=nd, cardi=getCard(nd),
+                        addiInfo=[subun(name=nd, level=lvl)])]
+        for child in getChildrByTarget(nd, interMap, target):
+            out += facto(child, [subun(name=nd, level=lvl),
+                                 subun(name=child, level=lvl+1)],
+                         target, lvl+1, interMap)
+        return out
+
