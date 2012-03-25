@@ -71,6 +71,26 @@ assert(remEmpty(remDupes(allChoices(['a', 'b', 'c']))) ==
         ['a', 'b'], ['a', 'c'], ['b', 'c'],
         ['a', 'b', 'c']])
 
+def genMap(IDList):
+    removeLast = lambda x: x[:-1]
+    # removing last elem in up-path of the lattice
+    # is a key point. Otherwise the concept of
+    # `ensemble on top of chain` is meaningless,
+    # since `empty` is on top of all chains.
+    return map(removeLast,
+               [p for p in itertools.permutations(IDList)])
+
+assert(genMap(['a', 'b', 'c']) ==
+       [('a', 'b'), ('a', 'c'), ('b', 'a'),
+        ('b', 'c'), ('c', 'a'), ('c', 'b')])
+
+def node2str(node):
+    # node is a list of IDs indentifying the node from the bottom
+    # of the lattice. Well, the bottom on the diagram I drew
+    # on the witheboard :-)
+    # Note: they're numerical IDs, so no risk of clashes with char '/'
+    return '/'.join(map(str, node))
+
 def getChildren(node, allPaths):
     # NODE is a partial path, starting from the
     # all-intersected ensebles.
@@ -80,29 +100,28 @@ def getChildren(node, allPaths):
     out = []
     for path in allPaths:
         if node2str(path).startswith(node2str(node)):
+            print 'path:', path, 'node:', node
             out.append(path[:(len(node) + 1)])
     return out
 
+# this one is kind of a dissonance. Look at the diagram
+# on the whiteboard: you should have a single child, that's correct.
+# I'd say it is (a,b,c), given its path. Isn't the encoding become weird?
 assert(getChildren(['a', 'b'], genMap(['a', 'b', 'c'])) ==
-       [('a', 'b', 'c')])
+       [('a', 'b')])
 assert(getChildren(['a', 'b'], genMap(['a', 'b', 'c', 'd'])) ==
        [('a', 'b', 'c'), ('a', 'b', 'd')])
 
-def node2str(node):
-    # node is a list of IDs indentifying the node from the bottom
-    # of the lattice. Well, the bottom on the diagram I drew
-    # on the witheboard :-)
-    # Note: they're numerical IDs, so no risk of clashes with char '/'
-    return '/'.join(map(str, node))
+def getChildrByTarget(node, allPaths, target):
+    # NODE and ALLPATHS as in getChildren,
+    # TARGET is an endpoint.
+    #
+    # The `if` clause looks bizarre, but you
+    # have to think that path are from the bottom, i.e.
+    # if target isn't in c, it will come later.
+    return [c for c in getChildren(node, allPaths)
+            if not target in c]
 
-def genMap(IDList):
-    return [p for p in itertools.permutations(IDList)]
-
-assert(genMap(['a', 'b', 'c']) ==
-       [('a', 'b', 'c'), ('a', 'c', 'b'), ('b', 'a', 'c'),
-        ('b', 'c', 'a'), ('c', 'a', 'b'), ('c', 'b', 'a')])
-
-paths = genMap(['A', 'B', 'C', 'D'])
 slice = namedtuple('slice', ['node', 'cardi', 'addiInfo'])
 
 #def facto(inters, subUns, interMap):
