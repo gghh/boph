@@ -99,28 +99,44 @@ def getChildren(node, allPaths):
     # genMap.
     out = []
     for path in allPaths:
-        if node2str(path).startswith(node2str(node)):
-            print 'path:', path, 'node:', node
-            out.append(path[:(len(node) + 1)])
+        if len(path) > len(node) and \
+                node2str(path).startswith(node2str(node)):
+            # print 'path:', path, 'node:', node # DBG
+            # I need to give also the continuation of the
+            # in order to know, later, if it's target-free
+            out.append( (path[:(len(node) + 1)], path[(len(node) + 1):]) )
     return out
 
-# this one is kind of a dissonance. Look at the diagram
-# on the whiteboard: you should have a single child, that's correct.
-# I'd say it is (a,b,c), given its path. Isn't the encoding become weird?
+# here I ask for children of a terminal
 assert(getChildren(['a', 'b'], genMap(['a', 'b', 'c'])) ==
-       [('a', 'b')])
+       [])
+# this one is a non-terminal case. Tuples in the
+# output list are (child, continuation).
+# Continuation is necessary to check if the node
+# ends up in the target or not.
 assert(getChildren(['a', 'b'], genMap(['a', 'b', 'c', 'd'])) ==
-       [('a', 'b', 'c'), ('a', 'b', 'd')])
+       [(('a', 'b', 'c'), ()), (('a', 'b', 'd'), ())])
 
 def getChildrByTarget(node, allPaths, target):
     # NODE and ALLPATHS as in getChildren,
     # TARGET is an endpoint.
     #
     # The `if` clause looks bizarre, but you
-    # have to think that path are from the bottom, i.e.
-    # if target isn't in c, it will come later.
-    return [c for c in getChildren(node, allPaths)
-            if not target in c]
+    # have to think that path are from the bottom,
+    # and that path don't include the last step
+    # (were arrows meet in the `universe`, so to speak.
+    # 
+    # by induction we assume that the children ('s prefix)
+    # is target-free. Kind of a contract: be nice when
+    # yuo call my function, initiate recursivity with
+    # a meaningful input (i.e., target-free)
+    # OMG that's dirty! continuation somehow must include
+    # also the 'current endpoint'; what if the target is there?
+    return [c[0] for c in getChildren(node, allPaths)
+            if not target in (c[0][-1],) + c[1]]
+
+assert(getChildrByTarget(['b'], genMap(['a', 'b', 'c', 'd']), 'a') ==
+       [('b', 'c'), ('b', 'd')])
 
 slice = namedtuple('slice', ['node', 'cardi', 'addiInfo'])
 
