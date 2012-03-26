@@ -134,17 +134,12 @@ def getChildrByTarget(node, allPaths, target):
     # also the 'current endpoint'; what if the target is there?
     return [c[0] for c in getChildren(node, allPaths)
             if not target in (c[0][-1],) + c[1]]
- #   for c in getChildren(node, allPaths):
- #       print 'current node:', node
- #       print 'child allinfo:', c
- #       print 'target:', target
- #       print 'just child:', c[0]
- #       print 'postfix (cont):', (c[0][-1],) + c[1]
 
-#assert(getChildrByTarget(['b'], genMap(['a', 'b', 'c', 'd']), 'a') ==
-#       [('b', 'c'), ('b', 'd')])
 
-endpoint = namedtuple('endpoint', ['node', 'cardi', 'addiInfo'])
+assert(getChildrByTarget(['b'], genMap(['a', 'b', 'c', 'd']), 'a') ==
+       [('b', 'c'), ('b', 'd')])
+
+endpoint = namedtuple('endpoint', ['node', 'cardi', 'inBelly'])
 subun = namedtuple('subun', ['name', 'level'])
 
 # mock function
@@ -159,36 +154,54 @@ def facto(nd, subUns, target, lvl, interMap, numSet):
     #
     # I need numSet to know if I am at the end of run
     if len(nd) == numSet-1 and not target in nd:
-        print 'Termination:', subUns
         # all subunions, accumulated, get finally into this
         return [endpoint(node=nd, cardi=getCard(nd),
-                    addiInfo=[subun(name=nd, level=lvl)] + subUns)]
+                         inBelly=subUns)]
     else:
         out = [endpoint(node=nd, cardi=getCard(nd),
-                        addiInfo=subUns)]
-        print 'recursion. Current subunions:', subUns
+                        inBelly=subUns)]
         for child in getChildrByTarget(nd, interMap, target):
-            print 'child:', child
             out += facto(child, [subun(name=nd, level=lvl)] + subUns,
                          target, lvl+1, interMap, numSet)
         return out
 
 # maybe level are to be raised by one, and empty must be formalized more,
 # but it looks good
-assert(facto(['b'], [[]], 'a', 0, genMap(['a', 'b', 'c']), 3) ==
-       [endpoint(node=['b'], cardi=1, addiInfo=[[]]),
+assert(facto(['b'], [subun(name=[[]], level=0)], 'a', 1, genMap(['a', 'b', 'c']), 3) ==
+       [endpoint(node=['b'], cardi=1, inBelly=[subun(name=[[]], level=0)]),
         endpoint(node=('b', 'c'), cardi=1,
-                 addiInfo=[subun(name=('b', 'c'), level=1),
-                           subun(name=['b'], level=0),
-                           []])])
+                 inBelly=[subun(name=['b'], level=1),
+                          subun(name=[[]], level=0)])])
 
-# launch it on 4, you'll have the bug.
-[endpoint(node=['b'], cardi=1, addiInfo=[[]]),
+assert(facto(['b'],
+             [subun(name=[[]], level=0)],
+             'a',
+             1,
+             genMap(['a', 'b', 'c', 'd']),
+             4) ==
+[endpoint(node=['b'],
+         cardi=1, 
+         inBelly=[subun(name=[[]], level=0)]), 
 
-endpoint(node=('b', 'c'), cardi=1, addiInfo=[subun(name=['b'], level=0), []]),
+endpoint(node=('b', 'c'),
+         cardi=1,
+         inBelly=[subun(name=['b'], level=1),
+                  subun(name=[[]], level=0)]),
 
-endpoint(node=('b', 'c', 'd'), cardi=1, addiInfo=[subun(name=('b', 'c', 'd'), level=2), subun(name=('b', 'c'), level=1), subun(name=['b'], level=0), []]),
+endpoint(node=('b', 'c', 'd'),
+         cardi=1,
+         inBelly=[subun(name=('b', 'c'), level=2),
+                  subun(name=['b'], level=1),
+                  subun(name=[[]], level=0)]),
 
-endpoint(node=('b', 'd'), cardi=1, addiInfo=[subun(name=['b'], level=0), []]),
+endpoint(node=('b', 'd'),
+         cardi=1,
+         inBelly=[subun(name=['b'], level=1),
+                  subun(name=[[]], level=0)]),
 
-endpoint(node=('b', 'd', 'c'), cardi=1, addiInfo=[subun(name=('b', 'd', 'c'), level=2), subun(name=('b', 'd'), level=1), subun(name=['b'], level=0), []])]
+endpoint(node=('b', 'd', 'c'),
+         cardi=1,
+         inBelly=[subun(name=('b', 'd'), level=2),
+                  subun(name=['b'], level=1),
+                  subun(name=[[]], level=0)])])
+
