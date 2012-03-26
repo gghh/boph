@@ -257,6 +257,22 @@ def flip():
         yield curr
         curr *= -1
 
+def mergeNode(normName, endptsList):
+    # merge all nodes that have permutation of a given name
+    for ep in endptsList:
+        if ep.name == normName.split('/'):
+            first = ep
+            break
+    else:
+        raise exception.Exception('endpoint not found')
+    rightNameEndpts = [ep for ep in endptsList
+                       if '/'.join(sorted(ep.name)) == normName]
+    return reduce(joinEndPts, rightNameEndpts, first)
+
+def mergeAllNodes(uniqueNames, endptsList):
+    # for each normalized name, merge nodes.
+    return [mergeNode(name, endptsList) for name in uniqueNames]
+
 def joinSubun(level, subunList):
     # create the list of names with the same level
     return (level, [su for su in subunList if su.level == level])
@@ -266,11 +282,19 @@ def computeInters(jointSubuns, target, allInter):
     # of the nodes intersecated with target.
     # JOINTSUBUN is the out of joinSubun(level, subunList)
     # ALLINTER is the lookup table for intersection
-    #for subun in jointSubuns[1]:
-        
-    
-    pass
-        
+    return sum([allInter[node2str(sorted(subun.name + [target]))]
+              for subun in jointSubuns[1]])
+
+subunList = [subun(name=['1'], level=1),
+             subun(name=[[]], level=0),
+             subun(name=['2'], level=1)]
+li1 = range(10)
+li2 = range(5, 15)
+li3 = range(13, 20) + range(3)
+listRefs = listByID([li1, li2, li3])
+allInters = intersLookup(listRefs)
+jSubuns = joinSubun(1, subunList)
+assert(computeInters(jSubuns, '0', allInters) == 8)
 
 # maybe level are to be raised by one, and empty must be formalized more,
 # but it looks good
