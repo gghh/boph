@@ -181,3 +181,14 @@ assert(facto(['b'], [[]], 'a', 0, genMap(['a', 'b', 'c']), 3) ==
                  addiInfo=[subun(name=('b', 'c'), level=1),
                            subun(name=['b'], level=0),
                            []])])
+
+# launch it on 4, you'll have the bug.
+[endpoint(node=['b'], cardi=1, addiInfo=[[]]),
+
+endpoint(node=('b', 'c'), cardi=1, addiInfo=[subun(name=['b'], level=0), []]),
+
+endpoint(node=('b', 'c', 'd'), cardi=1, addiInfo=[subun(name=('b', 'c', 'd'), level=2), subun(name=('b', 'c'), level=1), subun(name=['b'], level=0), []]),
+
+endpoint(node=('b', 'd'), cardi=1, addiInfo=[subun(name=['b'], level=0), []]),
+
+endpoint(node=('b', 'd', 'c'), cardi=1, addiInfo=[subun(name=('b', 'd', 'c'), level=2), subun(name=('b', 'd'), level=1), subun(name=['b'], level=0), []])]
