@@ -91,6 +91,43 @@ def node2str(node):
     # Note: they're numerical IDs, so no risk of clashes with char '/'
     return '/'.join(map(str, node))
 
+def listByID(listlist):
+    # this is to store reference to the lists,
+    # so that I can do all my computation symbolically,
+    # and add numbers only at the end.
+    out = {}
+    for cnt, li in enumerate(listlist):
+        out[cnt] = li
+    return out
+
+def inters_n(listlist):
+    out = set(listlist[0])
+    for li in listlist[1:]:
+        out = out.intersection(set(li))
+    return out
+    
+def intersLookup(listRefs):
+    toInters = remEmpty(remDupes(allChoices(listRefs.keys())))
+    doInter = lambda s, t: set(s).intersection(set(t))
+    inters_n = lambda node: \
+        (node2str(node), reduce(doInter,
+                                [listRefs[r] for r in node[1:]],
+                                listRefs[node[0]]))
+    return dict(map(inters_n, toInters))
+
+li1 = range(10)
+li2 = range(5, 15)
+li3 = range(13, 20) + range(3)
+listRefs = listByID([li1, li2, li3])
+assert(intersLookup(listRefs) ==
+       {'1/2': set([13, 14]),
+        '0/2': set([0, 1, 2]),
+        '0/1': set([8, 9, 5, 6, 7]),
+        '1': [5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+        '0': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        '2': [13, 14, 15, 16, 17, 18, 19, 0, 1, 2],
+        '0/1/2': set([])})
+
 def getChildren(node, allPaths):
     # NODE is a partial path, starting from the
     # all-intersected ensebles.
