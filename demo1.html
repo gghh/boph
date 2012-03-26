@@ -5,13 +5,22 @@
     <title>Chord Diagram</title>
     <script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
     <script type="text/javascript" src="js/d3.v2.vm.js"></script>
+    <script type="text/javascript" src="js/colorbrewer.js"></script>
+    <script type="text/javascript" src="js/dataInput.js"></script>
+
+
     <link type="text/css" rel="stylesheet" href="css/chord.css"/>
+    <link type="text/css" rel="stylesheet" href="css/style.css"/>
+
   </head>
   <body>
     <div id="chart"></div>
+    <div id="info">
+      <form id="form1">
+        <select id="dataset" ></select>
+      </form>
+    </div>
     <script type="text/javascript" src="js/chord.2.js"></script>
-	<div id="debug"></div>
-      <script type="text/javascript" src="js/controller.js"></script>
-
+    <script type="text/javascript" src="js/controller.js"></script>
   </body>
 </html>
