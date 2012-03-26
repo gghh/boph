@@ -165,20 +165,61 @@ def facto(nd, subUns, target, lvl, interMap, numSet):
                          target, lvl+1, interMap, numSet)
         return out
 
+def subunEq(subun1, subun2):
+    # equality for subuns
+    # wow finally using dynamic typing in the python way!
+    # len(.) gives non zero for endpts names, and zero for []
+    pprint = lambda x: x if len(x) > 0 else 'ROOT'
+    return set(map(pprint, subun1.name)) == \
+        set(map(pprint, subun2.name)) and \
+        subun1.level == subun2.level
+
+def getUniqueNodes(endptsList):
+    # if two paths are the same up to reordering,
+    # they represent the same endpoint. That's why the sort.
+    namesList = [sorted(list(e.node)) for e in endptsList]
+    uniqueNames = set(map(node2str, namesList))
+    return uniqueNames
+    
+assert(getUniqueNodes(facto(['b'], [subun(name=[[]], level=0)],
+                            'a', 1, genMap(['a', 'b', 'c', 'd']), 4)) ==
+       set(['b/c/d', 'b/d', 'b', 'b/c']))
+
+def joinEndPts(endpt1, endpt2):
+    # they're supposed to have the same name (node)
+    return endpoint(node=endpt1.node,
+                    cardi=endpt1.cardi,
+                    inBelly = endpt1.inBelly +
+                    [inbly for inbly in endpt2.inBelly
+                     if all(map(lambda x: not subunEq(inbly, x),
+                                endpt1.inBelly))])
+                    # if clause is: add this subun from endpt2.inBelly
+                    # if it wasn't already in endpt1.inBelly
+
+assert(joinEndPts(endpoint(node=('b', 'c'), cardi=1,
+                           inBelly=[subun(name=['b'], level=1), 
+                                    subun(name=[[]], level=0)]),
+                  endpoint(node=('c', 'b'), cardi=1,
+                           inBelly=[subun(name=['c'], level=1),
+                                    subun(name=[[]], level=0)])) ==
+       endpoint(node=('b', 'c'), cardi=1,
+                inBelly=[subun(name=['b'], level=1),
+                         subun(name=[[]], level=0),
+                         subun(name=['c'], level=1)]))
+
+
+
 # maybe level are to be raised by one, and empty must be formalized more,
 # but it looks good
-assert(facto(['b'], [subun(name=[[]], level=0)], 'a', 1, genMap(['a', 'b', 'c']), 3) ==
+assert(facto(['b'], [subun(name=[[]], level=0)],
+             'a', 1, genMap(['a', 'b', 'c']), 3) ==
        [endpoint(node=['b'], cardi=1, inBelly=[subun(name=[[]], level=0)]),
         endpoint(node=('b', 'c'), cardi=1,
                  inBelly=[subun(name=['b'], level=1),
                           subun(name=[[]], level=0)])])
 
-assert(facto(['b'],
-             [subun(name=[[]], level=0)],
-             'a',
-             1,
-             genMap(['a', 'b', 'c', 'd']),
-             4) ==
+assert(facto(['b'], [subun(name=[[]], level=0)],
+             'a', 1, genMap(['a', 'b', 'c', 'd']), 4) ==
 [endpoint(node=['b'],
          cardi=1, 
          inBelly=[subun(name=[[]], level=0)]), 
