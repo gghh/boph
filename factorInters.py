@@ -6,6 +6,12 @@ from collections import namedtuple
 
 # convert ensemble name to ID thru a global dictionary getID
 
+def o(f, g):
+    # function composition
+    def helper(x):
+        return f(g(x))
+    return helper
+
 def choose_n(n, srcList):
     if n == 0:
         return [[]]
@@ -113,20 +119,21 @@ def intersLookup(listRefs):
         (node2str(node), reduce(doInter,
                                 [listRefs[r] for r in node[1:]],
                                 listRefs[node[0]]))
-    return dict(map(inters_n, toInters))
+    count = lambda (namesChain, inters): (namesChain, len(inters))
+    return dict(map(o(count, inters_n), toInters))
 
 li1 = range(10)
 li2 = range(5, 15)
 li3 = range(13, 20) + range(3)
 listRefs = listByID([li1, li2, li3])
 assert(intersLookup(listRefs) ==
-       {'1/2': set([13, 14]),
-        '0/2': set([0, 1, 2]),
-        '0/1': set([8, 9, 5, 6, 7]),
-        '1': [5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
-        '0': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        '2': [13, 14, 15, 16, 17, 18, 19, 0, 1, 2],
-        '0/1/2': set([])})
+       {'1/2': 2,
+        '0/2': 3,
+        '0/1': 5,
+        '1': 10,
+        '0': 10,
+        '2': 10,
+        '0/1/2': 0})
 
 def getChildren(node, allPaths):
     # NODE is a partial path, starting from the
@@ -244,7 +251,26 @@ assert(joinEndPts(endpoint(node=('b', 'c'), cardi=1,
                          subun(name=[[]], level=0),
                          subun(name=['c'], level=1)]))
 
+def flip():
+    curr = 1
+    while True:
+        yield curr
+        curr *= -1
 
+def joinSubun(level, subunList):
+    # create the list of names with the same level
+    return (level, [su for su in subunList if su.level == level])
+
+def computeInters(jointSubuns, target, allInter):
+    # for a joint subun, gives the sum of cardinalities
+    # of the nodes intersecated with target.
+    # JOINTSUBUN is the out of joinSubun(level, subunList)
+    # ALLINTER is the lookup table for intersection
+    #for subun in jointSubuns[1]:
+        
+    
+    pass
+        
 
 # maybe level are to be raised by one, and empty must be formalized more,
 # but it looks good
