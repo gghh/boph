@@ -187,3 +187,34 @@ endpoint(node=('b', 'd', 'c'),
                   subun(name=['b'], level=1),
                   subun(name=[[]], level=0)])])
 
+getSubs = subunByLevel([subun(name=('b', 'c'), level=2),
+                        subun(name=['b'], level=1),
+                        subun(name=[[]], level=0),
+                        subun(name=('b', 'd'), level=2),
+                        subun(name=['c'], level=1),
+                        subun(name=('c', 'd'), level=2),
+                        subun(name=['d'], level=1)])
+
+assert([s for s in getSubs] ==
+
+       [[subun(name=('c', 'd'), level=2),
+         subun(name=('b', 'd'), level=2),
+         subun(name=('b', 'c'), level=2)],
+
+        [subun(name=['d'], level=1),
+         subun(name=['c'], level=1),
+         subun(name=['b'], level=1)],
+
+        [subun(name=[[]], level=0)]])
+
+assert(node2sets(endpoint(node=('c', 'd'), cardi=1,
+                          inBelly=[subun(name=['c'], level=1),
+                                   subun(name=[[]], level=0),
+                                   subun(name=['d'], level=1)]),
+                 ['a', 'b', 'c', 'd']) ==
+       ['a', 'b'])
+
+assert(node2sets(endpoint(node=[[]], cardi=1,
+                          inBelly=[]),
+                 ['a', 'b', 'c', 'd']) ==
+       ['a', 'c', 'b', 'd'])

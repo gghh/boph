@@ -2,6 +2,7 @@
 
 import itertools
 import exceptions
+import operator
 from collections import namedtuple
 
 # convert ensemble name to ID thru a global dictionary getID
@@ -206,3 +207,35 @@ def computeInters(jointSubuns, target, allInter):
     # ALLINTER is the lookup table for intersection
     return sum([allInter[node2str(sorted(subun.name + [target]))]
               for subun in jointSubuns[1]])
+
+# ok I made up this word. It means the cardinality of
+# a set without all the subunions it have in the belly.
+dissipation = namedtuple('dissipation', ['name', 'value'])
+
+def subunByLevel(subunList):
+    sortedSubun = sorted(subunList,
+                         key=operator.attrgetter('level'))
+    while sortedSubun:
+        out = [sortedSubun.pop()]
+        while True:
+            if sortedSubun:
+                current = sortedSubun.pop()
+                if (current.level) != (out[-1].level):
+                    # back in list
+                    sortedSubun += [current]
+                    break
+                else:
+                    # append to output
+                    out += [current]
+            else:
+                break
+        yield out
+
+def node2sets(endpt, nameList):
+    # cryptic. this is because the all-in intersection
+    # has [[]] as the sole node (list isn't hashable
+    pprint = lambda thing: thing if all(thing) else []
+    return list(set(nameList) - set(pprint(endpt.node)))
+
+def deMoivre():
+    pass
