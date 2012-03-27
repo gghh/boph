@@ -260,18 +260,69 @@ def flip():
 def mergeNode(normName, endptsList):
     # merge all nodes that have permutation of a given name
     for ep in endptsList:
-        if ep.name == normName.split('/'):
+        if list(ep.node) == normName.split('/'):
             first = ep
             break
     else:
-        raise exception.Exception('endpoint not found')
+        # I am assuming that for each normalized name,
+        # there exists an endpoint with exactly *that* name,
+        # I mean in the 'normalized' order
+        raise exceptions.Exception('endpoint not found')
     rightNameEndpts = [ep for ep in endptsList
-                       if '/'.join(sorted(ep.name)) == normName]
+                       if '/'.join(sorted(ep.node)) == normName]
     return reduce(joinEndPts, rightNameEndpts, first)
 
 def mergeAllNodes(uniqueNames, endptsList):
     # for each normalized name, merge nodes.
     return [mergeNode(name, endptsList) for name in uniqueNames]
+
+endptsList = (facto(['b'], [subun(name=[[]], level=0)],
+                   'a', 1, genMap(['a', 'b', 'c', 'd']), 4) +
+              facto(['c'], [subun(name=[[]], level=0)],
+                   'a', 1, genMap(['a', 'b', 'c', 'd']), 4) +
+              facto(['d'], [subun(name=[[]], level=0)],
+                   'a', 1, genMap(['a', 'b', 'c', 'd']), 4))
+
+# you always have to add ROOT (the all-in intersection) by hand,
+# since I didn't find a convenient way to represent it via paths.
+assert(mergeAllNodes(getUniqueNodes(endptsList), endptsList) +
+       [endpoint(node=[[]], cardi=1, inBelly=[])] ==
+       
+       [endpoint(node=['c'], cardi=1,
+                 inBelly=[subun(name=[[]], level=0)]),
+        
+        endpoint(node=['b'], cardi=1,
+                 inBelly=[subun(name=[[]], level=0)]),
+        
+        endpoint(node=['d'], cardi=1,
+                 inBelly=[subun(name=[[]], level=0)]),
+        
+        endpoint(node=('b', 'c', 'd'), cardi=1,
+                 inBelly=[subun(name=('b', 'c'), level=2),
+                          subun(name=['b'], level=1),
+                          subun(name=[[]], level=0),
+                          subun(name=('b', 'd'), level=2),
+                          subun(name=['c'], level=1),
+                          subun(name=('c', 'd'), level=2),
+                          subun(name=['d'], level=1)]),
+        
+        endpoint(node=('c', 'd'), cardi=1,
+                 inBelly=[subun(name=['c'], level=1),
+                          subun(name=[[]], level=0),
+                          subun(name=['d'], level=1)]),
+        
+        endpoint(node=('b', 'c'), cardi=1,
+                 inBelly=[subun(name=['b'], level=1),
+                          subun(name=[[]], level=0),
+                          subun(name=['c'], level=1)]),
+        
+        endpoint(node=('b', 'd'), cardi=1,
+                 inBelly=[subun(name=['b'], level=1),
+                          subun(name=[[]], level=0),
+                          subun(name=['d'], level=1)]),
+
+        endpoint(node=[[]], cardi=1,
+                 inBelly=[])])
 
 def joinSubun(level, subunList):
     # create the list of names with the same level
