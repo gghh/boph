@@ -121,10 +121,18 @@ def getChildrByTarget(node, allPaths, target):
 endpoint = namedtuple('endpoint', ['node', 'cardi', 'inBelly'])
 subun = namedtuple('subun', ['name', 'level'])
 
-# mock function
-getCard = lambda x: 1
+def getCard(pathFromBottom, allInters):
+    # input are endpoints, i.e. path from bottom.
+    pathFromTop = node2sets(endpoint(node=pathFromBottom,
+                                     cardi=None,
+                                     inBelly=None),
+                            allInters.keys())
+    return allInters['/'.join(sorted(pathFromTop))]
 
-def facto(nd, subUns, target, lvl, interMap, numSet):
+# mock function
+## getCard = lambda x: 1
+
+def facto(nd, subUns, target, lvl, interMap, numSet, allInters):
     # note: node are ident by path from the bottm,
     # so it isn't real clear how to refer to the lower terminal
     # which, strictly speaking, is the empty.
@@ -134,14 +142,14 @@ def facto(nd, subUns, target, lvl, interMap, numSet):
     # I need numSet to know if I am at the end of run
     if len(nd) == numSet-1 and not target in nd:
         # all subunions, accumulated, get finally into this
-        return [endpoint(node=nd, cardi=getCard(nd),
+        return [endpoint(node=nd, cardi=getCard(nd, allInters),
                          inBelly=subUns)]
     else:
-        out = [endpoint(node=nd, cardi=getCard(nd),
+        out = [endpoint(node=nd, cardi=getCard(nd, allInters),
                         inBelly=subUns)]
         for child in getChildrByTarget(nd, interMap, target):
             out += facto(child, [subun(name=nd, level=lvl)] + subUns,
-                         target, lvl+1, interMap, numSet)
+                         target, lvl+1, interMap, numSet, allInters)
         return out
 
 def subunEq(subun1, subun2):
@@ -200,12 +208,18 @@ def joinSubun(level, subunList):
     # create the list of names with the same level
     return (level, [su for su in subunList if su.level == level])
 
-def computeInters(jointSubuns, target, allInter):
+def computeInters(jointSubuns, target, allInter, nameList):
     # for a joint subun, gives the sum of cardinalities
     # of the nodes intersecated with target.
     # JOINTSUBUN is the out of joinSubun(level, subunList)
     # ALLINTER is the lookup table for intersection
-    return sum([allInter[node2str(sorted(subun.name + [target]))]
+    print 'jSubs:', jointSubuns
+    findPoint =  \
+        lambda pathFromBottom: \
+        node2sets(endpoint(node = pathFromBottom,
+                           cardi=None,
+                           inBelly=None), nameList)
+    return sum([allInter[node2str(sorted(list(findPoint(subun.name))))]
               for subun in jointSubuns[1]])
 
 # ok I made up this word. It means the cardinality of
@@ -244,17 +258,19 @@ def deMoivre(endpt, target, allInters, nameList):
                                     lvlSubs)]
     pathFromTop = node2sets(endpt, nameList)
     currentInters = allInters['/'.join(sorted(pathFromTop))]
-    # De Moavre formula! Yay!
+    # De Moivre formula! Yay!
     sign = flip()
     subunValue = \
         sum(map(lambda (sign, value): sign * value,
                 zip(sign,
-                    map(lambda js: computeInters(js, str(target), allInters),
-                        jSubs))
+                    map(lambda js: computeInters(js, str(target),
+                                                 allInters, nameList),
+                        jSubs))))
     return dissipation(name=endpt.node,
                        value = currentInters - subunValue)
 
 def multiDeMoivre(endptList, target, allInters, nameList):
-    return map(lambda ep: deMoivre(ep, target, allInters, nameList), endptList)
+    return map(lambda ep: deMoivre(ep, target, allInters, nameList),
+               endptList)
                
                                 

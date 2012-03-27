@@ -218,3 +218,33 @@ assert(node2sets(endpoint(node=[[]], cardi=1,
                           inBelly=[]),
                  ['a', 'b', 'c', 'd']) ==
        ['a', 'c', 'b', 'd'])
+
+
+#============ this is the badly broken part ==============
+
+li1 = range(10)
+li2 = range(5, 15)
+li3 = range(13, 20) + range(3)
+li4 = [n for n in range(20) if n % 2 == 0]
+
+listRefs = listByID([li1, li2, li3, li4])
+allInters = intersLookup(listRefs)
+
+epl = [endpoint(node=('1', '2', '3'),
+                cardi=getCard(('1', '2', '3'), allInters),
+                inBelly=[subun(name=('1', '2'), level=2),
+                         subun(name=['2'], level=1),
+                         subun(name=[[]], level=0),
+                         subun(name=('1', '3'), level=2),
+                         subun(name=['2'], level=1),
+                         subun(name=('2', '3'), level=2),
+                         subun(name=['3'], level=1)])]
+
+getCard(('1', '2', '3'), allInters)
+node2sets(endpoint(node=('1', '2', '3'),
+                   cardi=None,
+                   inBelly=None),
+          allInters.keys())
+allInters.keys()
+
+multiDeMoivre(epl, '0', allInters, map(str, range(4)))
