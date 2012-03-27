@@ -234,8 +234,27 @@ def subunByLevel(subunList):
 def node2sets(endpt, nameList):
     # cryptic. this is because the all-in intersection
     # has [[]] as the sole node (list isn't hashable
-    pprint = lambda thing: thing if all(thing) else []
+    pprint = lambda things: things if all(things) else []
     return list(set(nameList) - set(pprint(endpt.node)))
 
-def deMoivre():
-    pass
+def deMoivre(endpt, target, allInters, nameList):
+    lvlSubs = [s for s in subunByLevel(endpt.inBelly)]
+    jSubs = [joinSubun(lvl, lvlSub)
+             for lvl, lvlSub in zip(range(len(lvlSubs)-1,-1,-1),
+                                    lvlSubs)]
+    pathFromTop = node2sets(endpt, nameList)
+    currentInters = allInters['/'.join(sorted(pathFromTop))]
+    # De Moavre formula! Yay!
+    sign = flip()
+    subunValue = \
+        sum(map(lambda (sign, value): sign * value,
+                zip(sign,
+                    map(lambda js: computeInters(js, str(target), allInters),
+                        jSubs))
+    return dissipation(name=endpt.node,
+                       value = currentInters - subunValue)
+
+def multiDeMoivre(endptList, target, allInters, nameList):
+    return map(lambda ep: deMoivre(ep, target, allInters, nameList), endptList)
+               
+                                
