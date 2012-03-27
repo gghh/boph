@@ -219,6 +219,23 @@ assert(node2sets(endpoint(node=[[]], cardi=1,
                  ['a', 'b', 'c', 'd']) ==
        ['a', 'c', 'b', 'd'])
 
+assert(node2sets(endpoint(node=('1', '2', '3'),
+                          cardi=None,
+                          inBelly=None),
+                 ('1', '2', '3', '4')) ==
+       ['4'])
+
+li1 = range(10)
+li2 = range(5, 15)
+li3 = range(13, 20) + range(3)
+li4 = [n for n in range(20) if n % 2 == 0]
+
+listRefs = listByID([li1, li2, li3, li4])
+allInters = intersLookup(listRefs)
+
+assert(getCard(('1', '2', '3'), allInters,
+               map(str, listRefs.keys())) == 
+       10)
 
 #============ this is the badly broken part ==============
 

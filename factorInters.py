@@ -121,18 +121,19 @@ def getChildrByTarget(node, allPaths, target):
 endpoint = namedtuple('endpoint', ['node', 'cardi', 'inBelly'])
 subun = namedtuple('subun', ['name', 'level'])
 
-def getCard(pathFromBottom, allInters):
+def getCard(pathFromBottom, allInters, allNames):
     # input are endpoints, i.e. path from bottom.
     pathFromTop = node2sets(endpoint(node=pathFromBottom,
                                      cardi=None,
                                      inBelly=None),
-                            allInters.keys())
+                            allNames)
     return allInters['/'.join(sorted(pathFromTop))]
 
 # mock function
 ## getCard = lambda x: 1
 
-def facto(nd, subUns, target, lvl, interMap, numSet, allInters):
+def facto(nd, subUns, target, lvl, interMap,
+          numSet, allInters, allNames):
     # note: node are ident by path from the bottm,
     # so it isn't real clear how to refer to the lower terminal
     # which, strictly speaking, is the empty.
@@ -142,10 +143,10 @@ def facto(nd, subUns, target, lvl, interMap, numSet, allInters):
     # I need numSet to know if I am at the end of run
     if len(nd) == numSet-1 and not target in nd:
         # all subunions, accumulated, get finally into this
-        return [endpoint(node=nd, cardi=getCard(nd, allInters),
+        return [endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
                          inBelly=subUns)]
     else:
-        out = [endpoint(node=nd, cardi=getCard(nd, allInters),
+        out = [endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
                         inBelly=subUns)]
         for child in getChildrByTarget(nd, interMap, target):
             out += facto(child, [subun(name=nd, level=lvl)] + subUns,
