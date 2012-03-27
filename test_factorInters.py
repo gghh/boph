@@ -70,6 +70,9 @@ assert(getChildren(['a', 'b'], genMap(['a', 'b', 'c', 'd'])) ==
 assert(getChildrByTarget(['b'], genMap(['a', 'b', 'c', 'd']), 'a') ==
        [('b', 'c'), ('b', 'd')])
 
+assert(subunEq(subun(name=('b', 'c'), level=2),
+               subun(name=('c', 'b'), level=2)) ==
+       True)
     
 assert(getUniqueNodes(facto(['b'], [subun(name=[[]], level=0)],
                             'a', 1, genMap(['a', 'b', 'c', 'd']), 4)) ==

@@ -164,9 +164,9 @@ def joinEndPts(endpt1, endpt2):
     return endpoint(node=endpt1.node,
                     cardi=endpt1.cardi,
                     inBelly = endpt1.inBelly +
-                    [inbly for inbly in endpt2.inBelly])
-                    ##if all(map(lambda x: not subunEq(inbly, x),
-                    ##            endpt1.inBelly))])
+                    [inbly for inbly in endpt2.inBelly
+                     if all(map(lambda x: not subunEq(inbly, x),
+                                endpt1.inBelly))])
                     # if clause is: add this subun from endpt2.inBelly
                     # if it wasn't already in endpt1.inBelly
 
