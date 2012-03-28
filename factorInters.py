@@ -217,7 +217,7 @@ def computeInters(jointSubuns, target, allInter, nameList):
                            cardi=None,
                            inBelly=None), nameList)
     return sum([allInter[node2str(sorted(list(findPoint(subun.name))))]
-              for subun in jointSubuns[1]])
+                for subun in jointSubuns[1]])
 
 # ok I made up this word. It means the cardinality of
 # a set without all the subunions it have in the belly.
