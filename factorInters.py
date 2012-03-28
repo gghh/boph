@@ -212,7 +212,7 @@ def computeInters(jointSubuns, allInter, nameList):
     # of the nodes intersecated with target.
     # JOINTSUBUN is the out of joinSubun(level, subunList)
     # ALLINTER is the lookup table for intersection
-    print 'jSubs:', jointSubuns
+    ## print 'jSubs:', jointSubuns # DBG
     findPoint =  \
         lambda pathFromBottom: \
         node2sets(endpoint(node = pathFromBottom,
@@ -283,3 +283,22 @@ def getDiss_tgt(target, nameList, allInters):
                       [endpoint(node=[[]], cardi=1, inBelly=[])])
     dissLi = multiDeMoivre(eptLi_nodupes, allInters, nameList)
     return dissLi
+
+def getDiss_glb(nameList, allInters):
+    diss_dict = {}
+    for name in nameList:
+        for diss in getDiss_tgt(name, nameList, allInters):
+            ep = endpoint(node=diss.name, cardi=None, inBelly=None)
+            upPath_str = '/'.join(sorted(node2sets(ep, nameList)))
+            if upPath_str not in diss_dict:
+                diss_dict[upPath_str] = diss.value
+            else:
+                pass
+    return diss_dict
+
+
+def getDiss_inlists(listlist):
+    listRefs = listByID(listlist)
+    allInters = intersLookup(listRefs)
+    return getDiss_glb(map(str, listRefs.keys()), allInters)
+    

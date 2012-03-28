@@ -377,3 +377,70 @@ assert(sorted(dissLi_tA, key=operator.attrgetter('value')) ==
 assert(sorted(getDiss_tgt('A', ['A', 'B', 'C', 'D'], allInters),
               key=operator.attrgetter('value')) ==
        sorted(dissList, key=operator.attrgetter('value'))
+
+
+assert(getDiss_tgt('B', ['A', 'B', 'C', 'D'], allInters) ==
+       [dissipation(name=['A'], value=5),
+        dissipation(name=['C'], value=3),
+        dissipation(name=('A', 'D'), value=9),
+        dissipation(name=('A', 'C'), value=10),
+        dissipation(name=['D'], value=2),
+        dissipation(name=('A', 'C', 'D'), value=13),
+        dissipation(name=('C', 'D'), value=6),
+        dissipation(name=[[]], value=1)])
+
+assert(getDiss_tgt('D', ['A', 'B', 'C', 'D'], allInters) ==
+       [dissipation(name=['A'], value=5),
+        dissipation(name=['C'], value=3),
+        dissipation(name=['B'], value=4),
+        dissipation(name=('A', 'C'), value=10),
+        dissipation(name=('A', 'B'), value=11),
+        dissipation(name=('A', 'B', 'C'), value=15),
+        dissipation(name=('C', 'B'), value=8),
+        dissipation(name=[[]], value=1)])
+
+assert(getDiss_tgt('C', ['A', 'B', 'C', 'D'], allInters) ==
+       [dissipation(name=['A'], value=5),
+        dissipation(name=['B'], value=4),
+        dissipation(name=('A', 'B'), value=11),
+        dissipation(name=('A', 'D'), value=9),
+        dissipation(name=('A', 'B', 'D'), value=14),
+        dissipation(name=('B', 'D'), value=7),
+        dissipation(name=['D'], value=2),
+        dissipation(name=[[]], value=1)])
+
+d = getDiss_glb(['A', 'B', 'C', 'D'], allInters)
+assert(sorted(d.iteritems(), key=operator.itemgetter(1)) ==
+       [('A/B/C/D', 1),
+        ('A/B/C', 2),
+        ('A/B/D', 3),
+        ('A/C/D', 4),
+        ('B/C/D', 5),
+        ('A/B', 6),
+        ('A/C', 7),
+        ('A/D', 8),
+        ('B/C', 9),
+        ('B/D', 10),
+        ('C/D', 11),
+        ('A', 12),
+        ('B', 13),
+        ('C', 14),
+        ('D', 15)])
+
+d = getDiss_inlists([liA, liB, liC, liD])
+assert(sorted(d.iteritems(), key=operator.itemgetter(1)) ==
+       ('0/1/2/3', 1),
+       ('0/1/2', 2),
+       ('0/1/3', 3),
+       ('0/2/3', 4),
+       ('1/2/3', 5),
+       ('0/1', 6),
+       ('0/2', 7),
+       ('0/3', 8),
+       ('1/2', 9),
+       ('1/3', 10),
+       ('2/3', 11),
+       ('0', 12),
+       ('1', 13),
+       ('2', 14),
+       ('3', 15))
