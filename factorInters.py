@@ -1,11 +1,7 @@
-# interMap is all the permutations of the sets
-
 import itertools
 import exceptions
 import operator
 from collections import namedtuple
-
-# convert ensemble name to ID thru a global dictionary getID
 
 def o(f, g):
     # function composition
