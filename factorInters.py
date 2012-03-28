@@ -59,9 +59,20 @@ def listByID(listlist):
     # this is to store reference to the lists,
     # so that I can do all my computation symbolically,
     # and add numbers only at the end.
+    #
+    # input can be a list of lists,
+    # or a list of tuples (list, name) to give your handles
+    # to the data
     out = {}
-    for cnt, li in enumerate(listlist):
-        out[cnt] = li
+    if all(len(x) == 2 and type(x) == tuple
+           for x in listlist):
+        for li, name in listlist:
+            out[name] = li
+    elif all(type(x) == list for x in listlist):
+        for cnt, li in enumerate(listlist):
+            out[cnt] = li
+    else:
+        raise exceptions.Exception('Malformed input.')
     return out
 
 def inters_n(listlist):
@@ -302,3 +313,21 @@ def getDiss_inlists(listlist):
     allInters = intersLookup(listRefs)
     return getDiss_glb(map(str, listRefs.keys()), allInters)
     
+
+def pprintDiss(listlist):
+    diss_dict = getDiss_inlists(listlist)
+    lines = ['{groups: "%s", value: "%s"},' \
+                % (str(k).replace('/',','), str(diss_dict[k]))
+            for k in diss_dict]
+    # remove last comma, make single str
+    lines = '\n'.join(lines[:-2]) + '\n' 
+    return "var connsX = [\n" + lines + "];\n"
+
+if __name__ == '__main__':
+    liA = [1,2,3,4]
+    liB = [4,5,6,7,8,9]
+    liC = [7,8,9,10,11,12]
+    liD = [1,4,7]
+
+    print pprintDiss([(liA, 'foo'), (liB, 'bar'),
+                      (liC, 'scoiattolo'), (liD, 'gattino')])

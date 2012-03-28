@@ -444,3 +444,40 @@ assert(sorted(d.iteritems(), key=operator.itemgetter(1)) ==
        ('1', 13),
        ('2', 14),
        ('3', 15))
+
+assert(pprintDiss([liA, liB, liC, liD]) == 
+       """var connsX = [
+{groups: "1", value: "13"},
+{groups: "1,3", value: "10"},
+{groups: "0,1,2,3", value: "1"},
+{groups: "1,2,3", value: "5"},
+{groups: "0,2", value: "7"},
+{groups: "0,3", value: "8"},
+{groups: "0,1", value: "6"},
+{groups: "0,2,3", value: "4"},
+{groups: "0", value: "12"},
+{groups: "3", value: "15"},
+{groups: "2", value: "14"},
+{groups: "0,1,2", value: "2"},
+{groups: "0,1,3", value: "3"},
+];
+""")
+
+assert(pprintDiss([(liA, 'foo'), (liB, 'bar'),
+                   (liC, 'scoiattolo'), (liD, 'gattino')]) ==
+       """var connsX = [
+{groups: "foo,scoiattolo", value: "7"},
+{groups: "scoiattolo", value: "14"},
+{groups: "bar", value: "21"},
+{groups: "foo", value: "18"},
+{groups: "foo,gattino", value: "13"},
+{groups: "bar,foo", value: "9"},
+{groups: "gattino", value: "25"},
+{groups: "bar,gattino", value: "16"},
+{groups: "bar,foo,scoiattolo", value: "2"},
+{groups: "bar,foo,gattino,scoiattolo", value: "1"},
+{groups: "gattino,scoiattolo", value: "11"},
+{groups: "bar,scoiattolo", value: "9"},
+{groups: "foo,gattino,scoiattolo", value: "4"},
+];
+""")
