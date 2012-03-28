@@ -166,25 +166,34 @@ assert(mergeAllNodes(getUniqueNodes(endptsList), endptsList) +
         endpoint(node=[[]], cardi=0,
                  inBelly=[])])
 
-
-subunList = [subun(name=['1'], level=1),
-             subun(name=[[]], level=0),
-             subun(name=['2'], level=1)]
 li1 = range(10)
 li2 = range(5, 15)
 li3 = range(13, 20) + range(3)
-listRefs = listByID([li1, li2, li3])
+listRefs = listByID([(li1, 'a'),
+                     (li2, 'b'),
+                     (li3, 'c')])
 allInters = intersLookup(listRefs)
+subunList = [subun(name=['b'], level=1),
+             subun(name=[[]], level=0),
+             subun(name=['c'], level=1)]
 jSubuns = joinSubun(1, subunList)
-assert(computeInters(jSubuns, allInters, ['0', '1', '2']) == 8)
+assert(computeInters(jSubuns, allInters, ['a', 'b', 'c']) == 8)
 
 # maybe level are to be raised by one, and empty must be formalized more,
 # but it looks good
+li1 = []
+li2 = []
+li3 = []
+listRefs = listByID([(li1, 'a'),
+                     (li2, 'b'),
+                     (li3, 'c')])
+allInters = intersLookup(listRefs)
+
 assert(facto(['b'], [subun(name=[[]], level=0)],
              'a', 1, genMap(['a', 'b', 'c']), 3,
              allInters, ['a', 'b', 'c']) ==
-       [endpoint(node=['b'], cardi=1, inBelly=[subun(name=[[]], level=0)]),
-        endpoint(node=('b', 'c'), cardi=1,
+       [endpoint(node=['b'], cardi=0, inBelly=[subun(name=[[]], level=0)]),
+        endpoint(node=('b', 'c'), cardi=0,
                  inBelly=[subun(name=['b'], level=1),
                           subun(name=[[]], level=0)])])
 
@@ -192,7 +201,10 @@ li1 = []
 li2 = []
 li3 = []
 li4 = []
-listRefs = listByID([li1, li2, li3, li4])
+listRefs = listByID([(li1, 'a'),
+                     (li2, 'b'),
+                     (li3, 'c'),
+                     (li4, 'd')])
 allInters = intersLookup(listRefs)
 
 assert(facto(['b'], [subun(name=[[]], level=0)],
@@ -330,6 +342,7 @@ listRefs = {'A': liA,
             'B': liB,
             'C': liC,
             'D': liD}
+allInters = intersLookup(listRefs)
 
 epl = [endpoint(node=('B', 'C', 'D'),
                 cardi=getCard(('B', 'C', 'D'), allInters,
@@ -363,41 +376,41 @@ epl = [endpoint(node=('B', 'C', 'D'),
                          subun(name=['B'], level=1),
                          subun(name=[[]], level=0)]),
 
-       endpoint(node=('D'),
+       endpoint(node=('D',),
                 cardi=getCard(('D'), allInters,
                               map(str, listRefs.keys())),
                 inBelly=[subun(name=[[]], level=0)]),
 
-       endpoint(node=('C'),
+       endpoint(node=('C',),
                 cardi=getCard(('C'), allInters,
                               map(str, listRefs.keys())),
                 inBelly=[subun(name=[[]], level=0)]),
 
-       endpoint(node=('B'),
+       endpoint(node=('B',),
                 cardi=getCard(('B'), allInters,
                               map(str, listRefs.keys())),
                 inBelly=[subun(name=[[]], level=0)])]
 
-dissList = multiDeMoivre(epl, 'A', allInters, ['A', 'B', 'C', 'D'])
+dissList = multiDeMoivre(epl, allInters, ['A', 'B', 'C', 'D'])
 
 import operator
 assert(sorted(dissList, key=operator.attrgetter('value')) ==
-       [dissipation(name='D', value=2),
-        dissipation(name='C', value=3),
-        dissipation(name='B', value=4),
+       [dissipation(name=('D',), value=2),
+        dissipation(name=('C',), value=3),
+        dissipation(name=('B',), value=4),
         dissipation(name=('C', 'D'), value=6),
         dissipation(name=('B', 'D'), value=7),
         dissipation(name=('B', 'C'), value=8),
         dissipation(name=('B', 'C', 'D'), value=12)])
 
 
-eptsLi_tA = (facto(['B'], [subun(name=[[]], level=0)],
+eptsLi_tA = (facto(('B',), [subun(name=[[]], level=0)],
                    'A', 1, genMap(['A', 'B', 'C', 'D']), 4,
                    allInters, ['A', 'B', 'C', 'D']) +
-             facto(['C'], [subun(name=[[]], level=0)],
+             facto(('C',), [subun(name=[[]], level=0)],
                    'A', 1, genMap(['A', 'B', 'C', 'D']), 4,
                    allInters, ['A', 'B', 'C', 'D']) +
-             facto(['D'], [subun(name=[[]], level=0)],
+             facto(('D',), [subun(name=[[]], level=0)],
                    'A', 1, genMap(['A', 'B', 'C', 'D']), 4,
                    allInters, ['A', 'B', 'C', 'D']))
 
@@ -409,12 +422,19 @@ dissLi_tA = multiDeMoivre(eptsLi_tA_nodupes, allInters,
                           ['A', 'B', 'C', 'D'])
 
 assert(sorted(dissLi_tA, key=operator.attrgetter('value')) ==
-       sorted(dissList, key=operator.attrgetter('value')))
+       ([dissipation(name=[[]], value=1)] +
+        sorted(dissList, key=operator.attrgetter('value'))))
 
 assert(sorted(getDiss_tgt('A', ['A', 'B', 'C', 'D'], allInters),
               key=operator.attrgetter('value')) ==
-       sorted(dissList, key=operator.attrgetter('value')))
-
+       [dissipation(name=[[]], value=1),
+        dissipation(name=['D'], value=2),
+        dissipation(name=['C'], value=3),
+        dissipation(name=['B'], value=4),
+        dissipation(name=('C', 'D'), value=6),
+        dissipation(name=('B', 'D'), value=7),
+        dissipation(name=('C', 'B'), value=8),
+        dissipation(name=('C', 'B', 'D'), value=12)])
 
 assert(getDiss_tgt('B', ['A', 'B', 'C', 'D'], allInters) ==
        [dissipation(name=['A'], value=5),
