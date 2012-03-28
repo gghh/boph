@@ -74,8 +74,21 @@ assert(subunEq(subun(name=('b', 'c'), level=2),
                subun(name=('c', 'b'), level=2)) ==
        True)
     
+li1 = []
+li2 = []
+li3 = []
+li4 = []
+
+listRefs = listByID([(li1, 'a'),
+                     (li2, 'b'),
+                     (li3, 'c'),
+                     (li4, 'd')])
+
+allInters = intersLookup(listRefs)
+
 assert(getUniqueNodes(facto(['b'], [subun(name=[[]], level=0)],
-                            'a', 1, genMap(['a', 'b', 'c', 'd']), 4)) ==
+                            'a', 1, genMap(['a', 'b', 'c', 'd']), 4,
+                            allInters, ['a', 'b', 'c', 'd'])) ==
        set(['b/c/d', 'b/d', 'b', 'b/c']))
 
 assert(joinEndPts(endpoint(node=('b', 'c'), cardi=1,
@@ -89,29 +102,44 @@ assert(joinEndPts(endpoint(node=('b', 'c'), cardi=1,
                          subun(name=[[]], level=0),
                          subun(name=['c'], level=1)]))
 
+li1 = []
+li2 = []
+li3 = []
+li4 = []
+
+listRefs = listByID([(li1, 'a'),
+                     (li2, 'b'),
+                     (li3, 'c'),
+                     (li4, 'd')])
+
+allInters = intersLookup(listRefs)
 
 endptsList = (facto(['b'], [subun(name=[[]], level=0)],
-                   'a', 1, genMap(['a', 'b', 'c', 'd']), 4) +
+                    'a', 1, genMap(['a', 'b', 'c', 'd']), 4,
+                    allInters, ['a', 'b', 'c', 'd']) +
               facto(['c'], [subun(name=[[]], level=0)],
-                   'a', 1, genMap(['a', 'b', 'c', 'd']), 4) +
+                    'a', 1, genMap(['a', 'b', 'c', 'd']), 4,
+                    allInters, ['a', 'b', 'c', 'd']) +
               facto(['d'], [subun(name=[[]], level=0)],
-                   'a', 1, genMap(['a', 'b', 'c', 'd']), 4))
+                    'a', 1, genMap(['a', 'b', 'c', 'd']), 4,
+                    allInters, ['a', 'b', 'c', 'd']))
 
 # you always have to add ROOT (the all-in intersection) by hand,
 # since I didn't find a convenient way to represent it via paths.
+
 assert(mergeAllNodes(getUniqueNodes(endptsList), endptsList) +
-       [endpoint(node=[[]], cardi=1, inBelly=[])] ==
+       [endpoint(node=[[]], cardi=0, inBelly=[])] ==
        
-       [endpoint(node=['c'], cardi=1,
+       [endpoint(node=['c'], cardi=0,
                  inBelly=[subun(name=[[]], level=0)]),
         
-        endpoint(node=['b'], cardi=1,
+        endpoint(node=['b'], cardi=0,
                  inBelly=[subun(name=[[]], level=0)]),
         
-        endpoint(node=['d'], cardi=1,
+        endpoint(node=['d'], cardi=0,
                  inBelly=[subun(name=[[]], level=0)]),
         
-        endpoint(node=('b', 'c', 'd'), cardi=1,
+        endpoint(node=('b', 'c', 'd'), cardi=0,
                  inBelly=[subun(name=('b', 'c'), level=2),
                           subun(name=['b'], level=1),
                           subun(name=[[]], level=0),
@@ -120,22 +148,22 @@ assert(mergeAllNodes(getUniqueNodes(endptsList), endptsList) +
                           subun(name=('c', 'd'), level=2),
                           subun(name=['d'], level=1)]),
         
-        endpoint(node=('c', 'd'), cardi=1,
+        endpoint(node=('c', 'd'), cardi=0,
                  inBelly=[subun(name=['c'], level=1),
                           subun(name=[[]], level=0),
                           subun(name=['d'], level=1)]),
         
-        endpoint(node=('b', 'c'), cardi=1,
+        endpoint(node=('b', 'c'), cardi=0,
                  inBelly=[subun(name=['b'], level=1),
                           subun(name=[[]], level=0),
                           subun(name=['c'], level=1)]),
         
-        endpoint(node=('b', 'd'), cardi=1,
+        endpoint(node=('b', 'd'), cardi=0,
                  inBelly=[subun(name=['b'], level=1),
                           subun(name=[[]], level=0),
                           subun(name=['d'], level=1)]),
 
-        endpoint(node=[[]], cardi=1,
+        endpoint(node=[[]], cardi=0,
                  inBelly=[])])
 
 
@@ -148,41 +176,50 @@ li3 = range(13, 20) + range(3)
 listRefs = listByID([li1, li2, li3])
 allInters = intersLookup(listRefs)
 jSubuns = joinSubun(1, subunList)
-assert(computeInters(jSubuns, '0', allInters) == 8)
+assert(computeInters(jSubuns, allInters, ['0', '1', '2']) == 8)
 
 # maybe level are to be raised by one, and empty must be formalized more,
 # but it looks good
 assert(facto(['b'], [subun(name=[[]], level=0)],
-             'a', 1, genMap(['a', 'b', 'c']), 3) ==
+             'a', 1, genMap(['a', 'b', 'c']), 3,
+             allInters, ['a', 'b', 'c']) ==
        [endpoint(node=['b'], cardi=1, inBelly=[subun(name=[[]], level=0)]),
         endpoint(node=('b', 'c'), cardi=1,
                  inBelly=[subun(name=['b'], level=1),
                           subun(name=[[]], level=0)])])
 
+li1 = []
+li2 = []
+li3 = []
+li4 = []
+listRefs = listByID([li1, li2, li3, li4])
+allInters = intersLookup(listRefs)
+
 assert(facto(['b'], [subun(name=[[]], level=0)],
-             'a', 1, genMap(['a', 'b', 'c', 'd']), 4) ==
+             'a', 1, genMap(['a', 'b', 'c', 'd']), 4,
+              allInters, ['a', 'b', 'c', 'd']) ==
 [endpoint(node=['b'],
-         cardi=1, 
+         cardi=0, 
          inBelly=[subun(name=[[]], level=0)]), 
 
 endpoint(node=('b', 'c'),
-         cardi=1,
+         cardi=0,
          inBelly=[subun(name=['b'], level=1),
                   subun(name=[[]], level=0)]),
 
 endpoint(node=('b', 'c', 'd'),
-         cardi=1,
+         cardi=0,
          inBelly=[subun(name=('b', 'c'), level=2),
                   subun(name=['b'], level=1),
                   subun(name=[[]], level=0)]),
 
 endpoint(node=('b', 'd'),
-         cardi=1,
+         cardi=0,
          inBelly=[subun(name=['b'], level=1),
                   subun(name=[[]], level=0)]),
 
 endpoint(node=('b', 'd', 'c'),
-         cardi=1,
+         cardi=0,
          inBelly=[subun(name=('b', 'd'), level=2),
                   subun(name=['b'], level=1),
                   subun(name=[[]], level=0)])])
@@ -351,7 +388,7 @@ assert(sorted(dissList, key=operator.attrgetter('value')) ==
         dissipation(name=('C', 'D'), value=6),
         dissipation(name=('B', 'D'), value=7),
         dissipation(name=('B', 'C'), value=8),
-        dissipation(name=('B', 'C', 'D'), value=12)]
+        dissipation(name=('B', 'C', 'D'), value=12)])
 
 
 eptsLi_tA = (facto(['B'], [subun(name=[[]], level=0)],
@@ -372,11 +409,11 @@ dissLi_tA = multiDeMoivre(eptsLi_tA_nodupes, allInters,
                           ['A', 'B', 'C', 'D'])
 
 assert(sorted(dissLi_tA, key=operator.attrgetter('value')) ==
-       sorted(dissList, key=operator.attrgetter('value'))
+       sorted(dissList, key=operator.attrgetter('value')))
 
 assert(sorted(getDiss_tgt('A', ['A', 'B', 'C', 'D'], allInters),
               key=operator.attrgetter('value')) ==
-       sorted(dissList, key=operator.attrgetter('value'))
+       sorted(dissList, key=operator.attrgetter('value')))
 
 
 assert(getDiss_tgt('B', ['A', 'B', 'C', 'D'], allInters) ==
@@ -429,7 +466,7 @@ assert(sorted(d.iteritems(), key=operator.itemgetter(1)) ==
 
 d = getDiss_inlists([liA, liB, liC, liD])
 assert(sorted(d.iteritems(), key=operator.itemgetter(1)) ==
-       ('0/1/2/3', 1),
+       [('0/1/2/3', 1),
        ('0/1/2', 2),
        ('0/1/3', 3),
        ('0/2/3', 4),
@@ -443,7 +480,7 @@ assert(sorted(d.iteritems(), key=operator.itemgetter(1)) ==
        ('0', 12),
        ('1', 13),
        ('2', 14),
-       ('3', 15))
+       ('3', 15)])
 
 assert(pprintDiss([liA, liB, liC, liD]) == 
        """var connsX = [
