@@ -146,7 +146,8 @@ def facto(nd, subUns, target, lvl, interMap,
                         inBelly=subUns)]
         for child in getChildrByTarget(nd, interMap, target):
             out += facto(child, [subun(name=nd, level=lvl)] + subUns,
-                         target, lvl+1, interMap, numSet, allInters)
+                         target, lvl+1, interMap, numSet, allInters,
+                         allNames)
         return out
 
 def subunEq(subun1, subun2):
@@ -185,13 +186,14 @@ def flip():
 def mergeNode(normName, endptsList):
     # merge all nodes that have permutation of a given name
     for ep in endptsList:
-        if list(ep.node) == normName.split('/'):
+        if '/'.join(sorted(ep.node)) == normName:
             first = ep
             break
     else:
         # I am assuming that for each normalized name,
         # there exists an endpoint with exactly *that* name,
         # I mean in the 'normalized' order
+        print normName
         raise exceptions.Exception('endpoint not found')
     rightNameEndpts = [ep for ep in endptsList
                        if '/'.join(sorted(ep.node)) == normName]
@@ -205,7 +207,7 @@ def joinSubun(level, subunList):
     # create the list of names with the same level
     return (level, [su for su in subunList if su.level == level])
 
-def computeInters(jointSubuns, target, allInter, nameList):
+def computeInters(jointSubuns, allInter, nameList):
     # for a joint subun, gives the sum of cardinalities
     # of the nodes intersecated with target.
     # JOINTSUBUN is the out of joinSubun(level, subunList)
@@ -248,7 +250,7 @@ def node2sets(endpt, nameList):
     pprint = lambda things: things if all(things) else []
     return list(set(nameList) - set(pprint(endpt.node)))
 
-def deMoivre(endpt, target, allInters, nameList):
+def deMoivre(endpt, allInters, nameList):
     lvlSubs = [s for s in subunByLevel(endpt.inBelly)]
     jSubs = [joinSubun(lvl, lvlSub)
              for lvl, lvlSub in zip(range(len(lvlSubs)-1,-1,-1),
@@ -260,14 +262,24 @@ def deMoivre(endpt, target, allInters, nameList):
     subunValue = \
         sum(map(lambda (sign, value): sign * value,
                 zip(sign,
-                    map(lambda js: computeInters(js, str(target),
-                                                 allInters, nameList),
+                    map(lambda js: computeInters(js, allInters, nameList),
                         jSubs))))
     return dissipation(name=endpt.node,
                        value = currentInters - subunValue)
 
-def multiDeMoivre(endptList, target, allInters, nameList):
-    return map(lambda ep: deMoivre(ep, target, allInters, nameList),
+def multiDeMoivre(endptList, allInters, nameList):
+    return map(lambda ep: deMoivre(ep, allInters, nameList),
                endptList)
                
                                 
+def getDiss_tgt(target, nameList, allInters):
+    eptLi = []
+    for e in list(set(nameList) - set(target)):
+        eptLi += facto([e], [subun(name=[[]], level=0)],
+                      target, 1, genMap(nameList),
+                      len(nameList), allInters, nameList)
+    eptLi_nodupes = (mergeAllNodes(getUniqueNodes(eptLi),
+                                    eptLi) + 
+                      [endpoint(node=[[]], cardi=1, inBelly=[])])
+    dissLi = multiDeMoivre(eptLi_nodupes, allInters, nameList)
+    return dissLi

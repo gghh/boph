@@ -237,7 +237,6 @@ assert(getCard(('1', '2', '3'), allInters,
                map(str, listRefs.keys())) == 
        10)
 
-
 liA = []
 liB = []
 liC = []
@@ -354,31 +353,27 @@ assert(sorted(dissList, key=operator.attrgetter('value')) ==
         dissipation(name=('B', 'C'), value=8),
         dissipation(name=('B', 'C', 'D'), value=12)]
 
-#============ this is the badly broken part ==============
 
-li1 = range(10)
-li2 = range(5, 15)
-li3 = range(13, 20) + range(3)
-li4 = [n for n in range(20) if n % 2 == 0]
+eptsLi_tA = (facto(['B'], [subun(name=[[]], level=0)],
+                   'A', 1, genMap(['A', 'B', 'C', 'D']), 4,
+                   allInters, ['A', 'B', 'C', 'D']) +
+             facto(['C'], [subun(name=[[]], level=0)],
+                   'A', 1, genMap(['A', 'B', 'C', 'D']), 4,
+                   allInters, ['A', 'B', 'C', 'D']) +
+             facto(['D'], [subun(name=[[]], level=0)],
+                   'A', 1, genMap(['A', 'B', 'C', 'D']), 4,
+                   allInters, ['A', 'B', 'C', 'D']))
 
-listRefs = listByID([li1, li2, li3, li4])
-allInters = intersLookup(listRefs)
+eptsLi_tA_nodupes = (mergeAllNodes(getUniqueNodes(eptsLi_tA),
+                                   eptsLi_tA) + 
+                     [endpoint(node=[[]], cardi=1, inBelly=[])])
 
-epl = [endpoint(node=('1', '2', '3'),
-                cardi=getCard(('1', '2', '3'), allInters),
-                inBelly=[subun(name=('1', '2'), level=2),
-                         subun(name=['2'], level=1),
-                         subun(name=[[]], level=0),
-                         subun(name=('1', '3'), level=2),
-                         subun(name=['2'], level=1),
-                         subun(name=('2', '3'), level=2),
-                         subun(name=['3'], level=1)])]
+dissLi_tA = multiDeMoivre(eptsLi_tA_nodupes, allInters,
+                          ['A', 'B', 'C', 'D'])
 
-getCard(('1', '2', '3'), allInters)
-node2sets(endpoint(node=('1', '2', '3'),
-                   cardi=None,
-                   inBelly=None),
-          allInters.keys())
-allInters.keys()
+assert(sorted(dissLi_tA, key=operator.attrgetter('value')) ==
+       sorted(dissList, key=operator.attrgetter('value'))
 
-multiDeMoivre(epl, '0', allInters, map(str, range(4)))
+assert(sorted(getDiss_tgt('A', ['A', 'B', 'C', 'D'], allInters),
+              key=operator.attrgetter('value')) ==
+       sorted(dissList, key=operator.attrgetter('value'))
