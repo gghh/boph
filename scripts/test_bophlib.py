@@ -1,4 +1,4 @@
-from factorInters import *
+from bophlib import *
 
 
 assert(choose_n(0, ['a', 'b', 'c']) == [[]])
