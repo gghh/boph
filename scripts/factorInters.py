@@ -23,6 +23,7 @@ def allChoices(srcList):
     out = []
     for i in range(len(srcList)+1):
         out += choose_n(i, srcList)
+        print 'done with symbols for level', i
     return out
 
 def remDupes(listlist):
@@ -82,12 +83,19 @@ def inters_n(listlist):
     return out
     
 def intersLookup(listRefs):
+    print 'computing intersections lookup table'
     toInters = remEmpty(remDupes(allChoices(listRefs.keys())))
+    print 'scheduled intersections:', toInters
     doInter = lambda s, t: set(s).intersection(set(t))
-    inters_n = lambda node: \
-        (node2str(node), reduce(doInter,
-                                [listRefs[r] for r in node[1:]],
-                                listRefs[node[0]]))
+    def inters_n(node):
+        print 'intersecting', node
+        return (node2str(node), reduce(doInter,
+                                       [listRefs[r] for r in node[1:]],
+                                       listRefs[node[0]]))
+    #inters_n = lambda node: \
+    #    (node2str(node), reduce(doInter,
+    #                            [listRefs[r] for r in node[1:]],
+    #                            listRefs[node[0]]))
     count = lambda (namesChain, inters): (namesChain, len(inters))
     return dict(map(o(count, inters_n), toInters))
 
@@ -140,7 +148,7 @@ def getCard(pathFromBottom, allInters, allNames):
 ## getCard = lambda x: 1
 
 def facto(nd, subUns, target, lvl, interMap,
-          numSet, allInters, allNames):
+          numSet, allInters, allNames, tab=''):
     # note: node are ident by path from the bottm,
     # so it isn't real clear how to refer to the lower terminal
     # which, strictly speaking, is the empty.
@@ -148,8 +156,10 @@ def facto(nd, subUns, target, lvl, interMap,
     # the number of my ensembles. Then I join the result.
     #
     # I need numSet to know if I am at the end of run
+    print tab + 'facto:: enter'
     if len(nd) == numSet-1 and not target in nd:
         # all subunions, accumulated, get finally into this
+        print tab + 'facto:: return'
         return [endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
                          inBelly=subUns)]
     else:
@@ -158,7 +168,8 @@ def facto(nd, subUns, target, lvl, interMap,
         for child in getChildrByTarget(nd, interMap, target):
             out += facto(child, [subun(name=nd, level=lvl)] + subUns,
                          target, lvl+1, interMap, numSet, allInters,
-                         allNames)
+                         allNames, tab=tab+' ')
+        print tab + 'facto:: return'
         return out
 
 def subunEq(subun1, subun2):
@@ -219,6 +230,7 @@ def joinSubun(level, subunList):
     return (level, [su for su in subunList if su.level == level])
 
 def computeInters(jointSubuns, allInter, nameList):
+    print 'computing intersections'
     # for a joint subun, gives the sum of cardinalities
     # of the nodes intersecated with target.
     # JOINTSUBUN is the out of joinSubun(level, subunList)
