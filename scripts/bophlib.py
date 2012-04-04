@@ -74,6 +74,7 @@ def listByID(listlist):
             out[cnt] = li
     else:
         raise exceptions.Exception('Malformed input.')
+    print 'listbyID dict keys:', out.keys()
     return out
 
 def inters_n(listlist):
@@ -97,7 +98,10 @@ def intersLookup(listRefs):
     #                            [listRefs[r] for r in node[1:]],
     #                            listRefs[node[0]]))
     count = lambda (namesChain, inters): (namesChain, len(inters))
-    return dict(map(o(count, inters_n), toInters))
+    #return dict(map(o(count, inters_n), toInters))
+    lt = dict(map(o(count, inters_n), toInters))
+    print lt
+    return lt
 
 def getChildren(node, allPaths):
     # NODE is a partial path, starting from the
@@ -156,10 +160,15 @@ def facto(nd, subUns, target, lvl, interMap,
     # the number of my ensembles. Then I join the result.
     #
     # I need numSet to know if I am at the end of run
-    print tab + 'facto:: enter'
+    print 'target:', target
+    print 'curr node:', nd
+    if target in nd:
+        raise exceptions.Exception('Error: target is in node.' +
+                                   " It doesn't make sense")
+    print tab + 'facto:: enter. Node is', nd
     if len(nd) == numSet-1 and not target in nd:
         # all subunions, accumulated, get finally into this
-        print tab + 'facto:: return'
+        print tab + 'facto:: terminal return. Node:', nd
         return [endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
                          inBelly=subUns)]
     else:
@@ -169,7 +178,7 @@ def facto(nd, subUns, target, lvl, interMap,
             out += facto(child, [subun(name=nd, level=lvl)] + subUns,
                          target, lvl+1, interMap, numSet, allInters,
                          allNames, tab=tab+' ')
-        print tab + 'facto:: return'
+        print tab + 'facto:: return from node', nd
         return out
 
 def subunEq(subun1, subun2):
@@ -230,7 +239,7 @@ def joinSubun(level, subunList):
     return (level, [su for su in subunList if su.level == level])
 
 def computeInters(jointSubuns, allInter, nameList):
-    print 'computing intersections'
+    print 'looking up intersections'
     # for a joint subun, gives the sum of cardinalities
     # of the nodes intersecated with target.
     # JOINTSUBUN is the out of joinSubun(level, subunList)
@@ -274,7 +283,10 @@ def node2sets(endpt, nameList):
     return list(set(nameList) - set(pprint(endpt.node)))
 
 def deMoivre(endpt, allInters, nameList):
+    print
+    print
     lvlSubs = [s for s in subunByLevel(endpt.inBelly)]
+    print 'subByLvl:', lvlSubs
     jSubs = [joinSubun(lvl, lvlSub)
              for lvl, lvlSub in zip(range(len(lvlSubs)-1,-1,-1),
                                     lvlSubs)]
@@ -287,6 +299,11 @@ def deMoivre(endpt, allInters, nameList):
                 zip(sign,
                     map(lambda js: computeInters(js, allInters, nameList),
                         jSubs))))
+    print endpt
+    print 'demoivre:', zip(sign,
+                          map(lambda js: computeInters(js, allInters, nameList),
+                              jSubs))
+    print 'current inters:', currentInters, 'subun:', subunValue
     return dissipation(name=endpt.node,
                        value = currentInters - subunValue)
 
@@ -297,10 +314,12 @@ def multiDeMoivre(endptList, allInters, nameList):
                                 
 def getDiss_tgt(target, nameList, allInters):
     eptLi = []
-    for e in list(set(nameList) - set(target)):
+    print 'starting pts list:', set(nameList) - set(target)
+    for e in list(set(nameList) - set([target])):
         eptLi += facto([e], [subun(name=[[]], level=0)],
                       target, 1, genMap(nameList),
                       len(nameList), allInters, nameList)
+    print 'eps with dupes:', eptLi
     eptLi_nodupes = (mergeAllNodes(getUniqueNodes(eptLi),
                                     eptLi) + 
                       [endpoint(node=[[]], cardi=1, inBelly=[])])
