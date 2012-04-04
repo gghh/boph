@@ -54,13 +54,17 @@ assert(intersLookup(listRefs) ==
 
 
 # here I ask for children of a terminal
-assert(getChildren(['a', 'b'], genMap(['a', 'b', 'c'])) ==
+assert(getChildren(node(['a', 'b'],
+                        ['a', 'b', 'c'],
+                        upPath()), genMap(['a', 'b', 'c'])) ==
        [])
 # this one is a non-terminal case. Tuples in the
 # output list are (child, continuation).
 # Continuation is necessary to check if the node
 # ends up in the target or not.
-assert(getChildren(['a', 'b'], genMap(['a', 'b', 'c', 'd'])) ==
+assert(getChildren(node(['a', 'b'],
+                        ['a', 'b', 'c', 'd'],
+                        upPath()), genMap(['a', 'b', 'c', 'd'])) ==
        [(('a', 'b', 'c'), ()), (('a', 'b', 'd'), ())])
 
 
@@ -83,6 +87,9 @@ listRefs = listByID([(li1, 'a'),
 
 allInters = intersLookup(listRefs)
 
+print 'unodes:', getUniqueNodes(facto(['b'], [subun(name=[[]], level=0)],
+                            'a', 1, genMap(['a', 'b', 'c', 'd']), 4,
+                            allInters, ['a', 'b', 'c', 'd']))
 assert(getUniqueNodes(facto(['b'], [subun(name=[[]], level=0)],
                             'a', 1, genMap(['a', 'b', 'c', 'd']), 4,
                             allInters, ['a', 'b', 'c', 'd'])) ==
@@ -253,22 +260,17 @@ assert([s for s in getSubs] ==
 
         [subun(name=[[]], level=0)]])
 
-assert(node2sets(endpoint(node=('c', 'd'), cardi=1,
-                          inBelly=[subun(name=['c'], level=1),
-                                   subun(name=[[]], level=0),
-                                   subun(name=['d'], level=1)]),
-                 ['a', 'b', 'c', 'd']) ==
+assert(node(['c', 'd'],
+            ['a', 'b', 'c', 'd'],
+            upPath()).dwnPth() ==
        ['a', 'b'])
 
-assert(node2sets(endpoint(node=[[]], cardi=1,
-                          inBelly=[]),
-                 ['a', 'b', 'c', 'd']) ==
+assert(node([[]], ['a', 'b', 'c', 'd'], upPath()).dwnPth() ==
        ['a', 'c', 'b', 'd'])
 
-assert(node2sets(endpoint(node=('1', '2', '3'),
-                          cardi=None,
-                          inBelly=None),
-                 ('1', '2', '3', '4')) ==
+assert(node(['1', '2', '3'],
+            ['1', '2', '3', '4'],
+            upPath()).dwnPth() ==
        ['4'])
 
 li1 = range(10)

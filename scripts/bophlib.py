@@ -9,6 +9,51 @@ def o(f, g):
         return f(g(x))
     return helper
 
+class upPath(object):
+    pass
+
+class downPath(object):
+    pass
+
+class node():
+    def __init__(self, data, namelist, typ):
+        self.ln = len(data)
+        self.namelist = namelist
+        if isinstance(typ, upPath):
+            self.upPath = data
+            self.downPath = None
+        elif isinstance(typ, downPath): 
+            self.downPath = data
+            self.upPath = None
+
+    def upStr(self):
+        self.upString = '/'.join(map(str, self.upPath))
+        return self.upString
+
+    def dwnStr(self):
+        self.downString = '/'.join(self.downPath)
+        return self.downString
+
+    def nrmDwnStr(self):
+        if not self.downPath:
+            self.dwnPth()
+        self.normDownString = '/'.join(map(str, sorted(self.downPath)))
+        return self.normDownString
+
+    def nrmUpStr(self):
+        pprint = lambda things: things if all(things) else []
+        self.normUpString = '/'.join(sorted(pprint(self.upPath)))
+        return self.normUpString
+
+    def dwnPth(self):
+        if not self.upPath:
+            raise exceptions.Exception('asking for downPath w/o upPath. Bizarre')
+        # convert up-path to down-path
+        pprint = lambda things: things if all(things) else []
+        self.downPath = list(set(self.namelist) -
+                             set(pprint(self.upPath)))
+        return self.downPath
+
 def choose_n(n, srcList):
     if n == 0:
         return [[]]
@@ -56,13 +101,6 @@ def genMap(IDList):
     return map(removeLast,
                [p for p in itertools.permutations(IDList)])
 
-def node2str(node):
-    # node is a list of IDs indentifying the node from the bottom
-    # of the lattice. Well, the bottom on the diagram I drew
-    # on the witheboard :-)
-    # Note: they're numerical IDs, so no risk of clashes with char '/'
-    return '/'.join(map(str, node))
-
 def listByID(listlist):
     # this is to store reference to the lists,
     # so that I can do all my computation symbolically,
@@ -93,10 +131,13 @@ def intersLookup(listRefs):
     print 'computing intersections lookup table'
     toInters = remEmpty(remDupes(allChoices(listRefs.keys())))
     doInter = lambda s, t: set(s).intersection(set(t))
-    def inters_n(node):
-        return (node2str(node), reduce(doInter,
-                                       [listRefs[r] for r in node[1:]],
-                                       listRefs[node[0]]))
+
+    def inters_n(noude):
+        nd_dwnstr = node(noude, [], downPath()).nrmDwnStr()
+        return (nd_dwnstr,
+                reduce(doInter,
+                       [listRefs[r] for r in noude[1:]],
+                       listRefs[noude[0]]))
     #inters_n = lambda node: \
     #    (node2str(node), reduce(doInter,
     #                            [listRefs[r] for r in node[1:]],
@@ -106,7 +147,7 @@ def intersLookup(listRefs):
     lt = dict(map(o(count, inters_n), toInters))
     return lt
 
-def getChildren(node, allPaths):
+def getChildren(noude, allPaths):
     # NODE is a partial path, starting from the
     # all-intersected ensebles.
     # ALLPATHS are complete paths, from one end
@@ -114,15 +155,16 @@ def getChildren(node, allPaths):
     # genMap.
     out = []
     for path in allPaths:
-        if len(path) > len(node) and \
-                node2str(path).startswith(node2str(node)):
+        pathStr = node(path, [], upPath()).upStr()
+        if len(path) > noude.ln and \
+                pathStr.startswith(noude.upStr()):
             # print 'path:', path, 'node:', node # DBG
             # I need to give also the continuation of the
             # in order to know, later, if it's target-free
-            out.append( (path[:(len(node) + 1)], path[(len(node) + 1):]) )
+            out.append( (path[:(noude.ln + 1)], path[(noude.ln + 1):]) )
     return out
 
-def getChildrByTarget(node, allPaths, target):
+def getChildrByTarget(innode, allPaths, target):
     # NODE and ALLPATHS as in getChildren,
     # TARGET is an endpoint.
     #
@@ -137,7 +179,8 @@ def getChildrByTarget(node, allPaths, target):
     # a meaningful input (i.e., target-free)
     # OMG that's dirty! continuation somehow must include
     # also the 'current endpoint'; what if the target is there?
-    return [c[0] for c in getChildren(node, allPaths)
+    nd = node(innode, [], upPath())
+    return [c[0] for c in getChildren(nd, allPaths)
             if not target in (c[0][-1],) + c[1]]
 
 endpoint = namedtuple('endpoint', ['node', 'cardi', 'inBelly'])
@@ -145,11 +188,8 @@ subun = namedtuple('subun', ['name', 'level'])
 
 def getCard(pathFromBottom, allInters, allNames):
     # input are endpoints, i.e. path from bottom.
-    pathFromTop = node2sets(endpoint(node=pathFromBottom,
-                                     cardi=None,
-                                     inBelly=None),
-                            allNames)
-    return allInters['/'.join(sorted(pathFromTop))]
+    nd = node(pathFromBottom, allNames, upPath())
+    return allInters[nd.nrmDwnStr()]
 
 # mock function
 ## getCard = lambda x: 1
@@ -194,9 +234,7 @@ def subunEq(subun1, subun2):
 def getUniqueNodes(endptsList):
     # if two paths are the same up to reordering,
     # they represent the same endpoint. That's why the sort.
-    namesList = [sorted(list(e.node)) for e in endptsList]
-    uniqueNames = set(map(node2str, namesList))
-    return uniqueNames
+    return set([node(e.node, [], upPath()).nrmUpStr() for e in endptsList])
 
 def joinEndPts(endpt1, endpt2):
     # they're supposed to have the same name (node)
@@ -227,7 +265,7 @@ def mergeNode(normName, endptsList):
         # I mean in the 'normalized' order
         raise exceptions.Exception('endpoint not found')
     rightNameEndpts = [ep for ep in endptsList
-                       if '/'.join(sorted(ep.node)) == normName]
+                       if node(ep.node, [], upPath()).nrmUpStr() == normName]
     return reduce(joinEndPts, rightNameEndpts, first)
 
 def mergeAllNodes(uniqueNames, endptsList):
@@ -244,12 +282,9 @@ def computeInters(jointSubuns, allInter, nameList):
     # JOINTSUBUN is the out of joinSubun(level, subunList)
     # ALLINTER is the lookup table for intersection
     ## print 'jSubs:', jointSubuns # DBG
-    findPoint =  \
-        lambda pathFromBottom: \
-        node2sets(endpoint(node = pathFromBottom,
-                           cardi=None,
-                           inBelly=None), nameList)
-    return sum([allInter[node2str(sorted(list(findPoint(subun.name))))]
+    return sum([allInter[node(subun.name,
+                              nameList,
+                              upPath()).nrmDwnStr()]
                 for subun in jointSubuns[1]])
 
 # ok I made up this word. It means the cardinality of
@@ -275,19 +310,14 @@ def subunByLevel(subunList):
                 break
         yield out
 
-def node2sets(endpt, nameList):
-    # cryptic. this is because the all-in intersection
-    # has [[]] as the sole node (list isn't hashable
-    pprint = lambda things: things if all(things) else []
-    return list(set(nameList) - set(pprint(endpt.node)))
-
 def deMoivre(endpt, allInters, nameList):
     lvlSubs = [s for s in subunByLevel(endpt.inBelly)]
     jSubs = [joinSubun(lvl, lvlSub)
              for lvl, lvlSub in zip(range(len(lvlSubs)-1,-1,-1),
                                     lvlSubs)]
-    pathFromTop = node2sets(endpt, nameList)
-    currentInters = allInters['/'.join(sorted(pathFromTop))]
+    currentInters = allInters[node(endpt.node,
+                                   nameList,
+                                   upPath()).nrmDwnStr()]
     # De Moivre formula! Yay!
     sign = flip()
     subunValue = \
@@ -319,10 +349,9 @@ def getDiss_glb(nameList, allInters):
     diss_dict = {}
     for name in nameList:
         for diss in getDiss_tgt(name, nameList, allInters):
-            ep = endpoint(node=diss.name, cardi=None, inBelly=None)
-            upPath_str = '/'.join(sorted(node2sets(ep, nameList)))
-            if upPath_str not in diss_dict:
-                diss_dict[upPath_str] = diss.value
+            ep_dwnstr = node(diss.name, nameList, upPath()).nrmDwnStr()
+            if ep_dwnstr not in diss_dict:
+                diss_dict[ep_dwnstr] = diss.value
             else:
                 pass
     return diss_dict
