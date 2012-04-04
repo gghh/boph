@@ -22,10 +22,7 @@ assert(allChoices(['a', 'b', 'c']) ==
         ['a', 'b'], ['a', 'c'], ['b', 'a'],
         ['b', 'c'], ['c', 'a'], ['c', 'b'],
 
-        ['a', 'b', 'c'], ['a', 'c', 'b'],
-        ['b', 'a', 'c'], ['b', 'c', 'a'],
-        ['c', 'a', 'b'], ['c', 'b', 'a']])
-
+        ['a', 'c', 'b']])
 
 assert(remDupes(allChoices(['a', 'b', 'c'])) ==
        [[], ['a'], ['b'], ['c'],
@@ -520,17 +517,21 @@ assert(pprintDiss([liA, liB, liC, liD]) ==
 ];
 """)
 
+
+print 'js code', pprintDiss([(liA, 'foo'), (liB, 'bar'),
+                   (liC, 'scoiattolo'), (liD, 'gattino')])
 assert(pprintDiss([(liA, 'foo'), (liB, 'bar'),
                    (liC, 'scoiattolo'), (liD, 'gattino')]) ==
+
        """var connsX = [
 {groups: "foo,scoiattolo", value: "7"},
 {groups: "scoiattolo", value: "14"},
-{groups: "bar", value: "21"},
-{groups: "foo", value: "18"},
-{groups: "foo,gattino", value: "13"},
-{groups: "bar,foo", value: "9"},
-{groups: "gattino", value: "25"},
-{groups: "bar,gattino", value: "16"},
+{groups: "bar", value: "13"},
+{groups: "foo", value: "12"},
+{groups: "foo,gattino", value: "8"},
+{groups: "bar,foo", value: "6"},
+{groups: "gattino", value: "15"},
+{groups: "bar,gattino", value: "10"},
 {groups: "bar,foo,scoiattolo", value: "2"},
 {groups: "bar,foo,gattino,scoiattolo", value: "1"},
 {groups: "gattino,scoiattolo", value: "11"},
