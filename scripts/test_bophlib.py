@@ -516,8 +516,6 @@ assert(pprintDiss([liA, liB, liC, liD]) ==
 """)
 
 
-print 'js code', pprintDiss([(liA, 'foo'), (liB, 'bar'),
-                   (liC, 'scoiattolo'), (liD, 'gattino')])
 assert(pprintDiss([(liA, 'foo'), (liB, 'bar'),
                    (liC, 'scoiattolo'), (liD, 'gattino')]) ==
 

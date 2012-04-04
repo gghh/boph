@@ -208,10 +208,10 @@ def facto(nd, subUns, target, lvl, interMap,
     if target in nd:
         raise exceptions.Exception('Error: target is in node.' +
                                    " It doesn't make sense")
-    ## print tab + 'facto:: enter. Node is', nd
+    print tab + 'facto:: enter. Node is', nd
     if len(nd) == numSet-1 and not target in nd:
         # all subunions, accumulated, get finally into this
-        ## print tab + 'facto:: terminal return. Node:', nd
+        print tab + 'facto:: terminal return. Node:', nd
         return [endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
                          inBelly=subUns)]
     else:
@@ -221,7 +221,7 @@ def facto(nd, subUns, target, lvl, interMap,
             out += facto(child, [subun(name=nd, level=lvl)] + subUns,
                          target, lvl+1, interMap, numSet, allInters,
                          allNames, tab=tab+' ')
-        ## print tab + 'facto:: return from node', nd
+        print tab + 'facto:: return from node', nd
         return out
 
 def subunEq(subun1, subun2):
