@@ -164,7 +164,7 @@ def getChildren(noude, allPaths):
             out.append( (path[:(noude.ln + 1)], path[(noude.ln + 1):]) )
     return out
 
-def getChildrByTarget(innode, allPaths, target):
+def getChildrByTarget(innode, allNames, target):
     # NODE and ALLPATHS as in getChildren,
     # TARGET is an endpoint.
     #
@@ -179,9 +179,11 @@ def getChildrByTarget(innode, allPaths, target):
     # a meaningful input (i.e., target-free)
     # OMG that's dirty! continuation somehow must include
     # also the 'current endpoint'; what if the target is there?
-    nd = node(innode, [], upPath())
-    return [c[0] for c in getChildren(nd, allPaths)
-            if not target in (c[0][-1],) + c[1]]
+    complem = lambda ensemble, universe: list(set(universe) - set(ensemble))
+    complemNames = lambda ensemble: complem(ensemble, allNames)
+    addOne = lambda ensemble, elem: ensemble + [elem]
+    addOne2 = lambda elem: addOne(innode, elem)
+    return map(addOne2, list(set(complemNames(innode)) - set([target])))
 
 endpoint = namedtuple('endpoint', ['node', 'cardi', 'inBelly'])
 subun = namedtuple('subun', ['name', 'level'])
@@ -206,20 +208,20 @@ def facto(nd, subUns, target, lvl, interMap,
     if target in nd:
         raise exceptions.Exception('Error: target is in node.' +
                                    " It doesn't make sense")
-    print tab + 'facto:: enter. Node is', nd
+    ## print tab + 'facto:: enter. Node is', nd
     if len(nd) == numSet-1 and not target in nd:
         # all subunions, accumulated, get finally into this
-        print tab + 'facto:: terminal return. Node:', nd
+        ## print tab + 'facto:: terminal return. Node:', nd
         return [endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
                          inBelly=subUns)]
     else:
         out = [endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
                         inBelly=subUns)]
-        for child in getChildrByTarget(nd, interMap, target):
+        for child in getChildrByTarget(nd, allNames, target):
             out += facto(child, [subun(name=nd, level=lvl)] + subUns,
                          target, lvl+1, interMap, numSet, allInters,
                          allNames, tab=tab+' ')
-        print tab + 'facto:: return from node', nd
+        ## print tab + 'facto:: return from node', nd
         return out
 
 def subunEq(subun1, subun2):
