@@ -21,8 +21,15 @@ def choose_n(n, srcList):
 
 def allChoices(srcList):
     out = []
-    for i in range(len(srcList)+1):
-        out += choose_n(i, srcList)
+    tot = len(srcList)+1
+    complem = lambda universe, ensemble: \
+        list(set(universe) - set(ensemble))
+    complSrcList = lambda ensemble: complem(srcList, ensemble)
+    for i in range(tot):
+        if i > tot / 2: # integer division
+            out += map(complSrcList, choose_n(tot - (i + 1), srcList))
+        else:
+            out += choose_n(i, srcList)
         print 'done with symbols for level', i
     return out
 
@@ -74,7 +81,6 @@ def listByID(listlist):
             out[cnt] = li
     else:
         raise exceptions.Exception('Malformed input.')
-    print 'listbyID dict keys:', out.keys()
     return out
 
 def inters_n(listlist):
@@ -86,10 +92,8 @@ def inters_n(listlist):
 def intersLookup(listRefs):
     print 'computing intersections lookup table'
     toInters = remEmpty(remDupes(allChoices(listRefs.keys())))
-    print 'scheduled intersections:', toInters
     doInter = lambda s, t: set(s).intersection(set(t))
     def inters_n(node):
-        print 'intersecting', node
         return (node2str(node), reduce(doInter,
                                        [listRefs[r] for r in node[1:]],
                                        listRefs[node[0]]))
@@ -100,7 +104,6 @@ def intersLookup(listRefs):
     count = lambda (namesChain, inters): (namesChain, len(inters))
     #return dict(map(o(count, inters_n), toInters))
     lt = dict(map(o(count, inters_n), toInters))
-    print lt
     return lt
 
 def getChildren(node, allPaths):
@@ -160,8 +163,6 @@ def facto(nd, subUns, target, lvl, interMap,
     # the number of my ensembles. Then I join the result.
     #
     # I need numSet to know if I am at the end of run
-    print 'target:', target
-    print 'curr node:', nd
     if target in nd:
         raise exceptions.Exception('Error: target is in node.' +
                                    " It doesn't make sense")
@@ -224,7 +225,6 @@ def mergeNode(normName, endptsList):
         # I am assuming that for each normalized name,
         # there exists an endpoint with exactly *that* name,
         # I mean in the 'normalized' order
-        print normName
         raise exceptions.Exception('endpoint not found')
     rightNameEndpts = [ep for ep in endptsList
                        if '/'.join(sorted(ep.node)) == normName]
@@ -239,7 +239,6 @@ def joinSubun(level, subunList):
     return (level, [su for su in subunList if su.level == level])
 
 def computeInters(jointSubuns, allInter, nameList):
-    print 'looking up intersections'
     # for a joint subun, gives the sum of cardinalities
     # of the nodes intersecated with target.
     # JOINTSUBUN is the out of joinSubun(level, subunList)
@@ -283,10 +282,7 @@ def node2sets(endpt, nameList):
     return list(set(nameList) - set(pprint(endpt.node)))
 
 def deMoivre(endpt, allInters, nameList):
-    print
-    print
     lvlSubs = [s for s in subunByLevel(endpt.inBelly)]
-    print 'subByLvl:', lvlSubs
     jSubs = [joinSubun(lvl, lvlSub)
              for lvl, lvlSub in zip(range(len(lvlSubs)-1,-1,-1),
                                     lvlSubs)]
@@ -299,11 +295,6 @@ def deMoivre(endpt, allInters, nameList):
                 zip(sign,
                     map(lambda js: computeInters(js, allInters, nameList),
                         jSubs))))
-    print endpt
-    print 'demoivre:', zip(sign,
-                          map(lambda js: computeInters(js, allInters, nameList),
-                              jSubs))
-    print 'current inters:', currentInters, 'subun:', subunValue
     return dissipation(name=endpt.node,
                        value = currentInters - subunValue)
 
@@ -314,12 +305,10 @@ def multiDeMoivre(endptList, allInters, nameList):
                                 
 def getDiss_tgt(target, nameList, allInters):
     eptLi = []
-    print 'starting pts list:', set(nameList) - set(target)
     for e in list(set(nameList) - set([target])):
         eptLi += facto([e], [subun(name=[[]], level=0)],
                       target, 1, genMap(nameList),
                       len(nameList), allInters, nameList)
-    print 'eps with dupes:', eptLi
     eptLi_nodupes = (mergeAllNodes(getUniqueNodes(eptLi),
                                     eptLi) + 
                       [endpoint(node=[[]], cardi=1, inBelly=[])])
