@@ -329,7 +329,7 @@ def getDiss_inlists(listlist):
 
 def pprintDiss(listlist):
     diss_dict = getDiss_inlists(listlist)
-    lines = ['{groups: "%s", value: "%s"},' \
+    lines = ['{groups: "%s", value: %s},' \
                 % (str(k).replace('/',','), str(diss_dict[k]))
             for k in diss_dict]
     # remove last comma, make single str
