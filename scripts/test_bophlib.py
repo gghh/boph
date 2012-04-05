@@ -68,16 +68,36 @@ listRefs = listByID([(li1, 'a'),
 
 allInters = intersLookup(listRefs)
 
-assert(joinEndPts(endpoint(node=('b', 'c'), cardi=1,
-                           inBelly=[subun(name=['b'], level=1), 
-                                    subun(name=[[]], level=0)]),
-                  endpoint(node=('c', 'b'), cardi=1,
-                           inBelly=[subun(name=['c'], level=1),
-                                    subun(name=[[]], level=0)])) ==
-       endpoint(node=('b', 'c'), cardi=1,
-                inBelly=[subun(name=['b'], level=1),
-                         subun(name=[[]], level=0),
-                         subun(name=['c'], level=1)]))
+
+d1 = {'b/c/d': endpoint(node=['b', 'd', 'c'], 
+                         cardi=0, 
+                         inBelly={'b/d': subun(name=['b', 'd'], level=2), 
+                                  'b'  : subun(name=['b'], level=1), 
+                                  ''   : subun(name=[[]], level=0)})}
+
+d2 = {'b': endpoint(node=['b'], 
+                     cardi=0, 
+                     inBelly={'': subun(name=[[]], level=0)}),
+      'b/c/d': endpoint(node=['b', 'c', 'd'], 
+                        cardi=0, 
+                        inBelly={'b/c': subun(name=['b', 'c'], level=2), 
+                                 'b'  : subun(name=['b'], level=1), 
+                                 ''   : subun(name=[[]], level=0)})}
+ 
+assert(mergeEpts(d1, d2) ==
+
+       {'b': endpoint(node=['b'],
+                      cardi=0,
+                      inBelly={'': subun(name=[[]], level=0)}),
+
+        'b/c/d': endpoint(node=['b', 'd', 'c'],
+                          cardi=0,
+                          inBelly={'': subun(name=[[]], level=0),
+                                   'b': subun(name=['b'], level=1),
+                                   'b/c': subun(name=['b', 'c'], level=2),
+                                   'b/d': subun(name=['b', 'd'], level=2)})})
+
+
 
 li1 = []
 li2 = []
@@ -92,66 +112,68 @@ listRefs = listByID([(li1, 'a'),
 allInters = intersLookup(listRefs)
 
 endptsList = \
-    (appToValue(\
-        facto(['b'], [subun(name=[[]], level=0)],
+    (mergeEpts(\
+        facto(['b'], {'': subun(name=[[]], level=0)},
               'a', 1, 4,
               allInters, ['a', 'b', 'c', 'd']),
-        appToValue(\
-                facto(['c'], [subun(name=[[]], level=0)],
+        mergeEpts(\
+                facto(['c'], {'': subun(name=[[]], level=0)},
                       'a', 1, 4,
                       allInters, ['a', 'b', 'c', 'd']),
-                facto(['d'], [subun(name=[[]], level=0)],
+                facto(['d'], {'': subun(name=[[]], level=0)},
                       'a', 1, 4,
                       allInters, ['a', 'b', 'c', 'd']))))
 
 # you always have to add ROOT (the all-in intersection) by hand,
 # since I didn't find a convenient way to represent it via paths.
 
-assert(appToValue(mergeAllNodes(endptsList),
-                  {node([[]], ['a', 'b', 'c', 'd'], upPath()).nrmUpStr():
-                        [endpoint(node=[[]], cardi=1, inBelly=[])]}) ==
+"""
+assert(mergeEpts(mergeAllNodes(endptsList),
+                 {node([[]], ['a', 'b', 'c', 'd'], upPath()).nrmUpStr():
+                        endpoint(node=[[]], cardi=1, inBelly={})}) ==
 
-       {'': [endpoint(node=[[]], cardi=1, inBelly=[])], 
+       {'': endpoint(node=[[]], cardi=1, inBelly={}), 
 
         'c': endpoint(node=['c'], 
                       cardi=0, 
-                      inBelly=[subun(name=[[]], level=0)]), 
+                      inBelly={'': subun(name=[[]], level=0)}), 
 
         'b': endpoint(node=['b'], 
                       cardi=0, 
-                      inBelly=[subun(name=[[]], level=0)]), 
+                      inBelly={'': subun(name=[[]], level=0)}), 
 
         'd': endpoint(node=['d'], 
                       cardi=0, 
-                      inBelly=[subun(name=[[]], level=0)]), 
+                      inBelly={'': subun(name=[[]], level=0)}), 
 
         'b/c/d': endpoint(node=['b', 'c', 'd'], 
                           cardi=0, 
-                          inBelly=[subun(name=['b', 'c'], level=2), 
-                                   subun(name=['b'], level=1), 
-                                   subun(name=[[]], level=0), 
-                                   subun(name=['b', 'd'], level=2), 
-                                   subun(name=['c'], level=1), 
-                                   subun(name=['c', 'd'], level=2), 
-                                   subun(name=['d'], level=1)]), 
+                          inBelly={'b/c': subun(name=['b', 'c'], level=2), 
+                                   'b'  : subun(name=['b'], level=1), 
+                                   ''   : subun(name=[[]], level=0), 
+                                   'b/d': subun(name=['b', 'd'], level=2), 
+                                   'c'  : subun(name=['c'], level=1), 
+                                   'c/d': subun(name=['c', 'd'], level=2), 
+                                   'd'  : subun(name=['d'], level=1)}), 
 
         'c/d': endpoint(node=['c', 'd'], 
                         cardi=0, 
-                        inBelly=[subun(name=['c'], level=1), 
-                                 subun(name=[[]], level=0), 
-                                 subun(name=['d'], level=1)]), 
+                        inBelly={'c': subun(name=['c'], level=1), 
+                                 '' : subun(name=[[]], level=0), 
+                                 'd': subun(name=['d'], level=1)}), 
 
         'b/c': endpoint(node=['b', 'c'], 
                         cardi=0, 
-                        inBelly=[subun(name=['b'], level=1), 
-                                 subun(name=[[]], level=0), 
-                                 subun(name=['c'], level=1)]), 
+                        inBelly={'b': subun(name=['b'], level=1), 
+                                 '' : subun(name=[[]], level=0), 
+                                 'c': subun(name=['c'], level=1)}), 
 
         'b/d': endpoint(node=['b', 'd'], 
                         cardi=0,
-                        inBelly=[subun(name=['b'], level=1), 
-                                 subun(name=[[]], level=0), 
-                                 subun(name=['d'], level=1)])})
+                        inBelly={'b': subun(name=['b'], level=1), 
+                                 '' : subun(name=[[]], level=0), 
+                                 'd': subun(name=['d'], level=1)})})
+"""
 
 li1 = range(10)
 li2 = range(5, 15)
@@ -160,11 +182,12 @@ listRefs = listByID([(li1, 'a'),
                      (li2, 'b'),
                      (li3, 'c')])
 allInters = intersLookup(listRefs)
-subunList = [subun(name=['b'], level=1),
-             subun(name=[[]], level=0),
-             subun(name=['c'], level=1)]
-jSubuns = joinSubun(1, subunList)
-assert(computeInters(jSubuns, allInters, ['a', 'b', 'c']) == 8)
+subunDict = {'b': subun(name=['b'], level=1),
+             '' : subun(name=[[]], level=0),
+             'c': subun(name=['c'], level=1)}
+subuns = [s for s in subunByLevel(subunDict)]
+# remember, subuns are reverse-ordered by level.
+assert(computeInters(subuns[0], allInters, ['a', 'b', 'c']) == 8)
 
 # maybe level are to be raised by one, and empty must be formalized more,
 # but it looks good
@@ -176,16 +199,16 @@ listRefs = listByID([(li1, 'a'),
                      (li3, 'c')])
 allInters = intersLookup(listRefs)
 
-assert(facto(['b'], [subun(name=[[]], level=0)],
+assert(facto(['b'], {'': subun(name=[[]], level=0)},
              'a', 1, 3,
              allInters, ['a', 'b', 'c']) ==
-       {'b': [endpoint(node=['b'],
+       {'b': endpoint(node=['b'],
                        cardi=0,
-                       inBelly=[subun(name=[[]], level=0)])],
-        'b/c': [endpoint(node=['b', 'c'],
-                         cardi=0,
-                         inBelly=[subun(name=['b'], level=1),
-                                  subun(name=[[]], level=0)])]})
+                       inBelly={'': subun(name=[[]], level=0)}),
+        'b/c': endpoint(node=['b', 'c'],
+                        cardi=0,
+                        inBelly={'b': subun(name=['b'], level=1),
+                                 '' : subun(name=[[]], level=0)})})
 
 li1 = []
 li2 = []
@@ -197,50 +220,51 @@ listRefs = listByID([(li1, 'a'),
                      (li4, 'd')])
 allInters = intersLookup(listRefs)
 
-assert(facto(['b'], [subun(name=[[]], level=0)],
+assert(facto(['b'], {'': subun(name=[[]], level=0)},
              'a', 1, 4,
               allInters, ['a', 'b', 'c', 'd']) ==
 
-       {'b/d': [endpoint(node=['b', 'd'], 
-                         cardi=0, inBelly=[subun(name=['b'], level=1), 
-                                           subun(name=[[]], level=0)])], 
-        'b': [endpoint(node=['b'], 
-                       cardi=0, 
-                       inBelly=[subun(name=[[]], level=0)])], 
-        'b/c/d': [endpoint(node=['b', 'c', 'd'], 
+       {'b/d': endpoint(node=['b', 'd'], 
+                        cardi=0,
+                        inBelly={'b': subun(name=['b'], level=1), 
+                                 '' : subun(name=[[]], level=0)}), 
+        'b': endpoint(node=['b'], 
+                      cardi=0, 
+                      inBelly={'' : subun(name=[[]], level=0)}), 
+        'b/c/d': endpoint(node=['b', 'c', 'd'], 
                            cardi=0, 
-                           inBelly=[subun(name=['b', 'c'], level=2), 
-                                    subun(name=['b'], level=1), 
-                                    subun(name=[[]], level=0)]), 
-                  endpoint(node=['b', 'd', 'c'], 
-                           cardi=0, 
-                           inBelly=[subun(name=['b', 'd'], level=2), 
-                                    subun(name=['b'], level=1), 
-                                    subun(name=[[]], level=0)])], 
-        'b/c': [endpoint(node=['b', 'c'], 
-                         cardi=0, 
-                         inBelly=[subun(name=['b'], level=1),
-                                  subun(name=[[]], level=0)])]})
+                           inBelly={'b/c': subun(name=['b', 'c'], level=2), 
+                                    'b'  : subun(name=['b'], level=1), 
+                                    ''   : subun(name=[[]], level=0),
+                                    'b/d': subun(name=['b', 'd'], level=2), 
+                                    'b'  : subun(name=['b'], level=1), 
+                                    ''   : subun(name=[[]], level=0)}), 
+        'b/c': endpoint(node=['b', 'c'], 
+                        cardi=0, 
+                        inBelly={'b' : subun(name=['b'], level=1),
+                                 ''  : subun(name=[[]], level=0)})})
 
-getSubs = subunByLevel([subun(name=['b', 'c'], level=2),
-                        subun(name=['b'], level=1),
-                        subun(name=[[]], level=0),
-                        subun(name=['b', 'd'], level=2),
-                        subun(name=['c'], level=1),
-                        subun(name=['c', 'd'], level=2),
-                        subun(name=['d'], level=1)])
+getSubs = subunByLevel({'b/c': subun(name=['b', 'c'], level=2),
+                        'b'  : subun(name=['b'], level=1),
+                        ''   : subun(name=[[]], level=0),
+                        'b/d': subun(name=['b', 'd'], level=2),
+                        'c'  : subun(name=['c'], level=1),
+                        'c/d': subun(name=['c', 'd'], level=2),
+                        'd'  : subun(name=['d'], level=1)})
 
 assert([s for s in getSubs] ==
 
-       [[subun(name=['c', 'd'], level=2),
-         subun(name=['b', 'd'], level=2),
-         subun(name=['b', 'c'], level=2)],
+       [[('b/d', subun(name=['b', 'd'], level=2)),
+         ('b/c', subun(name=['b', 'c'], level=2)),
+         ('c/d', subun(name=['c', 'd'], level=2))],
 
-        [subun(name=['d'], level=1),
-         subun(name=['c'], level=1),
-         subun(name=['b'], level=1)],
+        [('d', subun(name=['d'], level=1)),
+         ('b', subun(name=['b'], level=1)),
+         ('c', subun(name=['c'], level=1))],
 
-        [subun(name=[[]], level=0)]])
+        [('', subun(name=[[]], level=0))]])
+
+
 
 assert(node(['c', 'd'],
             ['a', 'b', 'c', 'd'],
@@ -328,49 +352,49 @@ allInters = intersLookup(listRefs)
 epl = {'B/C/D': endpoint(node=['B', 'C', 'D'],
                          cardi=getCard(['B', 'C', 'D'], allInters,
                                        map(str, listRefs.keys())),
-                         inBelly=[subun(name=['D', 'C'], level=2),
-                                  subun(name=['D', 'B'], level=2),
-                                  subun(name=['C', 'B'], level=2),
-                                  subun(name=['D'], level=1),
-                                  subun(name=['C'], level=1),
-                                  subun(name=['B'], level=1),
-                                  subun(name=[[]], level=0)]),
+                         inBelly={'D/C': subun(name=['D', 'C'], level=2),
+                                  'D/B': subun(name=['D', 'B'], level=2),
+                                  'C/B': subun(name=['C', 'B'], level=2),
+                                  'D'  : subun(name=['D'], level=1),
+                                  'C'  : subun(name=['C'], level=1),
+                                  'B'  : subun(name=['B'], level=1),
+                                  ''   : subun(name=[[]], level=0)}),
 
        'C/D': endpoint(node=['C', 'D'],
                        cardi=getCard(['C', 'D'], allInters,
                                      map(str, listRefs.keys())),
-                       inBelly=[subun(name=['D'], level=1),
-                                subun(name=['C'], level=1),
-                                subun(name=[[]], level=0)]),
+                       inBelly={'D': subun(name=['D'], level=1),
+                                'C': subun(name=['C'], level=1),
+                                '' : subun(name=[[]], level=0)}),
 
        'B/D': endpoint(node=['B', 'D'],
                        cardi=getCard(['B', 'D'], allInters,
                                      map(str, listRefs.keys())),
-                       inBelly=[subun(name=['D'], level=1),
-                                subun(name=['B'], level=1),
-                                subun(name=[[]], level=0)]),
+                       inBelly={'D': subun(name=['D'], level=1),
+                                'B': subun(name=['B'], level=1),
+                                '' : subun(name=[[]], level=0)}),
 
        'B/C': endpoint(node=['B', 'C'],
                        cardi=getCard(['B', 'C'], allInters,
                                      map(str, listRefs.keys())),
-                       inBelly=[subun(name=['C'], level=1),
-                                subun(name=['B'], level=1),
-                                subun(name=[[]], level=0)]),
+                       inBelly={'C': subun(name=['C'], level=1),
+                                'B': subun(name=['B'], level=1),
+                                '' : subun(name=[[]], level=0)}),
 
        'D': endpoint(node=['D'],
                      cardi=getCard(['D'], allInters,
                                    map(str, listRefs.keys())),
-                     inBelly=[subun(name=[[]], level=0)]),
+                     inBelly={'': subun(name=[[]], level=0)}),
        
        'C': endpoint(node=['C'],
                      cardi=getCard(['C'], allInters,
                                    map(str, listRefs.keys())),
-                     inBelly=[subun(name=[[]], level=0)]),
+                     inBelly={'': subun(name=[[]], level=0)}),
 
        'B': endpoint(node=['B'],
                      cardi=getCard(['B'], allInters,
                                    map(str, listRefs.keys())),
-                     inBelly=[subun(name=[[]], level=0)])}
+                     inBelly={'': subun(name=[[]], level=0)})}
 
 dissList = multiDeMoivre(epl.values(), allInters, ['A', 'B', 'C', 'D'])
 
@@ -385,29 +409,29 @@ assert(sorted(dissList, key=operator.attrgetter('value')) ==
         dissipation(name=['B', 'C', 'D'], value=12)])
 
 
-eptsLi_tA = (appToValue(\
-        facto(['B'], [subun(name=[[]], level=0)],
+eptsLi_tA = (mergeEpts(\
+        facto(['B'], {'': subun(name=[[]], level=0)},
               'A', 1, 4,
               allInters, ['A', 'B', 'C', 'D']),
-        appToValue(\
-            facto(['C'], [subun(name=[[]], level=0)],
+        mergeEpts(\
+            facto(['C'], {'': subun(name=[[]], level=0)},
                   'A', 1, 4,
                   allInters, ['A', 'B', 'C', 'D']),
-            facto(['D'], [subun(name=[[]], level=0)],
-                  'A', 1, 4,
-                  allInters, ['A', 'B', 'C', 'D']))))
+            mergeEpts(\
+                facto(['D'], {'': subun(name=[[]], level=0)},
+                      'A', 1, 4,
+                      allInters, ['A', 'B', 'C', 'D']),
+                {node([[]], ['a', 'b', 'c', 'd'], upPath()).nrmUpStr():
+                     endpoint(node=[[]], cardi=1, inBelly={})}))))
 
-eptsLi_tA_nodupes = (appToValue(\
-        mergeAllNodes(eptsLi_tA),
-        {node([[]], ['a', 'b', 'c', 'd'], upPath()).nrmUpStr():
-             endpoint(node=[[]], cardi=1, inBelly=[])}))
 
-dissLi_tA = multiDeMoivre(eptsLi_tA_nodupes.values(), allInters,
+dissLi_tA = multiDeMoivre(eptsLi_tA.values(), allInters,
                           ['A', 'B', 'C', 'D'])
 
 assert(sorted(dissLi_tA, key=operator.attrgetter('value')) ==
        ([dissipation(name=[[]], value=1)] +
         sorted(dissList, key=operator.attrgetter('value'))))
+
 
 assert(sorted(getDiss_tgt('A', ['A', 'B', 'C', 'D'], allInters),
               key=operator.attrgetter('value')) ==

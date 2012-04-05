@@ -54,12 +54,12 @@ class node():
                              set(pprint(self.upPath)))
         return self.downPath
 
-def appToValue(dict1, dict2):
-    for k, v in dict2.iteritems():
-        if k in dict1:
-            dict1[k] += v
+def mergeEpts(dict1, dict2):
+    for idx, ept in dict2.iteritems():
+        if idx in dict1:
+            dict1[idx].inBelly.update(dict2[idx].inBelly)
         else:
-            dict1[k] = v
+            dict1[idx] = ept
     return dict1
 
 def choose_n(n, srcList):
@@ -195,17 +195,20 @@ def facto(nd, subUns, target, lvl,
         # all subunions, accumulated, get finally into this
         ## print tab + 'facto:: terminal return. Node:', nd
         return {node(nd, allNames, upPath()).nrmUpStr():
-                    [endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
-                             inBelly=subUns)]}
+                    endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
+                             inBelly=subUns)}
     else:
         out = {node(nd, allNames, upPath()).nrmUpStr():
-                   [endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
-                             inBelly=subUns)]}
+                   endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
+                             inBelly=subUns)}
         for child in getChildrByTarget(nd, allNames, target):
-            appToValue(out,
-                       facto(child, [subun(name=nd, level=lvl)] + subUns,
-                             target, lvl+1, numSet, allInters,
-                             allNames, tab=tab+' '))
+            mergeEpts(out,
+                      facto(child,
+                            mergeEpts({node(nd, allNames, upPath()).nrmUpStr():
+                                           subun(name=nd, level=lvl)},
+                                      subUns),
+                            target, lvl+1, numSet, allInters,
+                            allNames, tab=tab+' '))
         ## print tab + 'facto:: return from node', nd
         return out
 
@@ -224,51 +227,11 @@ def subunEq(subun1, subun2):
         else:
             return subun1.level == subun2.level
 
-def getUniqueNodes(endptsList):
-    # if two paths are the same up to reordering,
-    # they represent the same endpoint. That's why the sort.
-    return set([node(e.node, [], upPath()).nrmUpStr() for e in endptsList])
-
-def joinEndPts(endpt1, endpt2):
-    # they're supposed to have the same name (node)
-    return endpoint(node=endpt1.node,
-                    cardi=endpt1.cardi,
-                    inBelly = endpt1.inBelly +
-                    [inbly for inbly in endpt2.inBelly
-                     if all(map(lambda x: not subunEq(inbly, x),
-                                endpt1.inBelly))])
-                    # if clause is: add this subun from endpt2.inBelly
-                    # if it wasn't already in endpt1.inBelly
-
 def flip():
     curr = 1
     while True:
         yield curr
         curr *= -1
-
-def mergeNode(normName, endptsList):
-    # merge all nodes that have permutation of a given name
-    for ep in endptsList:
-        if '/'.join(sorted(ep.node)) == normName:
-            first = ep
-            break
-    else:
-        # I am assuming that for each normalized name,
-        # there exists an endpoint with exactly *that* name,
-        # I mean in the 'normalized' order
-        raise exceptions.Exception('endpoint not found')
-    rightNameEndpts = [ep for ep in endptsList
-                       if node(ep.node, [], upPath()).nrmUpStr() == normName]
-    return reduce(joinEndPts, rightNameEndpts, first)
-
-def mergeAllNodes(endptsDict):
-    # for each normalized name, merge nodes.
-    return dict([(k, reduce(joinEndPts, endptsDict[k], endptsDict[k][0])) for
-            k in endptsDict])
-
-def joinSubun(level, subunList):
-    # create the list of names with the same level
-    return (level, [su for su in subunList if su.level == level])
 
 def computeInters(jointSubuns, allInter, nameList):
     # for a joint subun, gives the sum of cardinalities
@@ -279,21 +242,22 @@ def computeInters(jointSubuns, allInter, nameList):
     return sum([allInter[node(subun.name,
                               nameList,
                               upPath()).nrmDwnStr()]
-                for subun in jointSubuns[1]])
+                for subun in [s[1] for s in jointSubuns]])
 
 # ok I made up this word. It means the cardinality of
 # a set without all the subunions it have in the belly.
 dissipation = namedtuple('dissipation', ['name', 'value'])
 
-def subunByLevel(subunList):
-    sortedSubun = sorted(subunList,
-                         key=operator.attrgetter('level'))
+def subunByLevel(subunDict):
+    sortedSubun = sorted(subunDict.iteritems(),
+                         key=o(operator.attrgetter('level'),
+                               operator.itemgetter(1)))
     while sortedSubun:
         out = [sortedSubun.pop()]
         while True:
             if sortedSubun:
                 current = sortedSubun.pop()
-                if (current.level) != (out[-1].level):
+                if (current[1].level) != (out[-1][1].level):
                     # back in list
                     sortedSubun += [current]
                     break
@@ -306,9 +270,6 @@ def subunByLevel(subunList):
 
 def deMoivre(endpt, allInters, nameList):
     lvlSubs = [s for s in subunByLevel(endpt.inBelly)]
-    jSubs = [joinSubun(lvl, lvlSub)
-             for lvl, lvlSub in zip(range(len(lvlSubs)-1,-1,-1),
-                                    lvlSubs)]
     currentInters = allInters[node(endpt.node,
                                    nameList,
                                    upPath()).nrmDwnStr()]
@@ -318,7 +279,7 @@ def deMoivre(endpt, allInters, nameList):
         sum(map(lambda (sign, value): sign * value,
                 zip(sign,
                     map(lambda js: computeInters(js, allInters, nameList),
-                        jSubs))))
+                        lvlSubs))))
     print 'Computed De Moivre for ' + str(endpt.node)
     return dissipation(name=endpt.node,
                        value = currentInters - subunValue)
@@ -331,20 +292,20 @@ def multiDeMoivre(endptList, allInters, nameList):
 def getDiss_tgt(target, nameList, allInters):
     eptLi = {}
     for e in list(set(nameList) - set([target])):
-        appToValue(eptLi, facto([e], [subun(name=[[]], level=0)],
-                                target, 1,
-                                len(nameList), allInters, nameList))
+        mergeEpts(eptLi, facto([e], {'': subun(name=[[]], level=0)},
+                               target, 1,
+                               len(nameList), allInters, nameList))
         print '  done with step [' + e + ']'
     # just to find a key in eptLi
     for k in eptLi:
         break
     print ('merging ' + str(len(eptLi)) + ' nodes, ' +
            str(len(eptLi[k])) + ' nested levels each...')
-    eptLi_nodupes = appToValue(mergeAllNodes(eptLi), 
-                               {node([[]], nameList, upPath()).nrmUpStr():
-                                    endpoint(node=[[]], cardi=1, inBelly=[])})
+    eptLi = mergeEpts(eptLi,
+                      {node([[]], nameList, upPath()).nrmUpStr():
+                           endpoint(node=[[]], cardi=1, inBelly={})})
     print 'merged nodes'
-    dissLi = multiDeMoivre(eptLi_nodupes.values(), allInters, nameList)
+    dissLi = multiDeMoivre(eptLi.values(), allInters, nameList)
     return dissLi
 
 def getDiss_glb(nameList, allInters):
