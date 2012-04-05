@@ -54,6 +54,14 @@ class node():
                              set(pprint(self.upPath)))
         return self.downPath
 
+def appToValue(dict1, dict2):
+    for k, v in dict2.iteritems():
+        if k in dict1:
+            dict1[k] += v
+        else:
+            dict1[k] = v
+    return dict1
+
 def choose_n(n, srcList):
     if n == 0:
         return [[]]
@@ -147,23 +155,6 @@ def intersLookup(listRefs):
     lt = dict(map(o(count, inters_n), toInters))
     return lt
 
-def getChildren(noude, allPaths):
-    # NODE is a partial path, starting from the
-    # all-intersected ensebles.
-    # ALLPATHS are complete paths, from one end
-    # to the other of the lattice. You get them via
-    # genMap.
-    out = []
-    for path in allPaths:
-        pathStr = node(path, [], upPath()).upStr()
-        if len(path) > noude.ln and \
-                pathStr.startswith(noude.upStr()):
-            # print 'path:', path, 'node:', node # DBG
-            # I need to give also the continuation of the
-            # in order to know, later, if it's target-free
-            out.append( (path[:(noude.ln + 1)], path[(noude.ln + 1):]) )
-    return out
-
 def getChildrByTarget(innode, allNames, target):
     # NODE and ALLPATHS as in getChildren,
     # TARGET is an endpoint.
@@ -212,15 +203,18 @@ def facto(nd, subUns, target, lvl, interMap,
     if len(nd) == numSet-1 and not target in nd:
         # all subunions, accumulated, get finally into this
         print tab + 'facto:: terminal return. Node:', nd
-        return [endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
-                         inBelly=subUns)]
+        return {node(nd, allNames, upPath()).nrmUpStr():
+                    [endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
+                             inBelly=subUns)]}
     else:
-        out = [endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
-                        inBelly=subUns)]
+        out = {node(nd, allNames, upPath()).nrmUpStr():
+                   [endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
+                             inBelly=subUns)]}
         for child in getChildrByTarget(nd, allNames, target):
-            out += facto(child, [subun(name=nd, level=lvl)] + subUns,
-                         target, lvl+1, interMap, numSet, allInters,
-                         allNames, tab=tab+' ')
+            appToValue(out,
+                       facto(child, [subun(name=nd, level=lvl)] + subUns,
+                             target, lvl+1, interMap, numSet, allInters,
+                             allNames, tab=tab+' '))
         print tab + 'facto:: return from node', nd
         return out
 
@@ -270,9 +264,10 @@ def mergeNode(normName, endptsList):
                        if node(ep.node, [], upPath()).nrmUpStr() == normName]
     return reduce(joinEndPts, rightNameEndpts, first)
 
-def mergeAllNodes(uniqueNames, endptsList):
+def mergeAllNodes(endptsDict):
     # for each normalized name, merge nodes.
-    return [mergeNode(name, endptsList) for name in uniqueNames]
+    return dict([(k, reduce(joinEndPts, endptsDict[k], endptsDict[k][0])) for
+            k in endptsDict])
 
 def joinSubun(level, subunList):
     # create the list of names with the same level
@@ -336,15 +331,15 @@ def multiDeMoivre(endptList, allInters, nameList):
                
                                 
 def getDiss_tgt(target, nameList, allInters):
-    eptLi = []
+    eptLi = {}
     for e in list(set(nameList) - set([target])):
-        eptLi += facto([e], [subun(name=[[]], level=0)],
+        eptLi.update(facto([e], [subun(name=[[]], level=0)],
                       target, 1, genMap(nameList),
-                      len(nameList), allInters, nameList)
-    eptLi_nodupes = (mergeAllNodes(getUniqueNodes(eptLi),
-                                    eptLi) + 
-                      [endpoint(node=[[]], cardi=1, inBelly=[])])
-    dissLi = multiDeMoivre(eptLi_nodupes, allInters, nameList)
+                      len(nameList), allInters, nameList))
+    eptLi_nodupes = appToValue(mergeAllNodes(eptLi), 
+                               {node([[]], nameList, upPath()).nrmUpStr():
+                                    endpoint(node=[[]], cardi=1, inBelly=[])})
+    dissLi = multiDeMoivre(eptLi_nodupes.values(), allInters, nameList)
     return dissLi
 
 def getDiss_glb(nameList, allInters):
