@@ -199,10 +199,10 @@ def facto(nd, subUns, target, lvl, interMap,
     if target in nd:
         raise exceptions.Exception('Error: target is in node.' +
                                    " It doesn't make sense")
-    print tab + 'facto:: enter. Node is', nd
+    ## print tab + 'facto:: enter. Node is', nd
     if len(nd) == numSet-1 and not target in nd:
         # all subunions, accumulated, get finally into this
-        print tab + 'facto:: terminal return. Node:', nd
+        ## print tab + 'facto:: terminal return. Node:', nd
         return {node(nd, allNames, upPath()).nrmUpStr():
                     [endpoint(node=nd, cardi=getCard(nd, allInters, allNames),
                              inBelly=subUns)]}
@@ -215,7 +215,7 @@ def facto(nd, subUns, target, lvl, interMap,
                        facto(child, [subun(name=nd, level=lvl)] + subUns,
                              target, lvl+1, interMap, numSet, allInters,
                              allNames, tab=tab+' '))
-        print tab + 'facto:: return from node', nd
+        ## print tab + 'facto:: return from node', nd
         return out
 
 def subunEq(subun1, subun2):
@@ -333,9 +333,10 @@ def multiDeMoivre(endptList, allInters, nameList):
 def getDiss_tgt(target, nameList, allInters):
     eptLi = {}
     for e in list(set(nameList) - set([target])):
-        eptLi.update(facto([e], [subun(name=[[]], level=0)],
-                      target, 1, genMap(nameList),
-                      len(nameList), allInters, nameList))
+        appToValue(eptLi, facto([e], [subun(name=[[]], level=0)],
+                                target, 1, genMap(nameList),
+                                len(nameList), allInters, nameList))
+        print 'Done with target [' + e + ']'
     eptLi_nodupes = appToValue(mergeAllNodes(eptLi), 
                                {node([[]], nameList, upPath()).nrmUpStr():
                                     endpoint(node=[[]], cardi=1, inBelly=[])})

@@ -413,8 +413,6 @@ assert(sorted(dissLi_tA, key=operator.attrgetter('value')) ==
        ([dissipation(name=[[]], value=1)] +
         sorted(dissList, key=operator.attrgetter('value'))))
 
-print 'sted:', sorted(getDiss_tgt('A', ['A', 'B', 'C', 'D'], allInters),
-              key=operator.attrgetter('value'))
 assert(sorted(getDiss_tgt('A', ['A', 'B', 'C', 'D'], allInters),
               key=operator.attrgetter('value')) ==
        [dissipation(name=[[]], value=1),
@@ -426,35 +424,38 @@ assert(sorted(getDiss_tgt('A', ['A', 'B', 'C', 'D'], allInters),
         dissipation(name=['C', 'B'], value=8),
         dissipation(name=['C', 'B', 'D'], value=12)])
 
-assert(getDiss_tgt('B', ['A', 'B', 'C', 'D'], allInters) ==
-       [dissipation(name=['A'], value=5),
-        dissipation(name=['C'], value=3),
-        dissipation(name=['A', 'D'], value=9),
-        dissipation(name=['A', 'C'], value=10),
+assert(sorted(getDiss_tgt('B', ['A', 'B', 'C', 'D'], allInters),
+              key=operator.attrgetter('value')) ==
+       [dissipation(name=[[]], value=1),
         dissipation(name=['D'], value=2),
-        dissipation(name=['A', 'C', 'D'], value=13),
+        dissipation(name=['C'], value=3),
+        dissipation(name=['A'], value=5),
         dissipation(name=['C', 'D'], value=6),
-        dissipation(name=[[]], value=1)])
+        dissipation(name=['A', 'D'], value=9),
+        dissipation(name=['A', 'C'], value=10),
+        dissipation(name=['A', 'C', 'D'], value=13)])
 
-assert(getDiss_tgt('D', ['A', 'B', 'C', 'D'], allInters) ==
-       [dissipation(name=['A'], value=5),
+assert(sorted(getDiss_tgt('D', ['A', 'B', 'C', 'D'], allInters),
+              key=operator.attrgetter('value')) ==
+       [dissipation(name=[[]], value=1),
         dissipation(name=['C'], value=3),
         dissipation(name=['B'], value=4),
+        dissipation(name=['A'], value=5),
+        dissipation(name=['C', 'B'], value=8),
         dissipation(name=['A', 'C'], value=10),
         dissipation(name=['A', 'B'], value=11),
-        dissipation(name=['A', 'C', 'B'], value=15),
-        dissipation(name=['C', 'B'], value=8),
-        dissipation(name=[[]], value=1)])
+        dissipation(name=['A', 'C', 'B'], value=15)])
 
-assert(getDiss_tgt('C', ['A', 'B', 'C', 'D'], allInters) ==
-       [dissipation(name=['A'], value=5),
-        dissipation(name=['B'], value=4),
-        dissipation(name=['A', 'B'], value=11),
-        dissipation(name=['A', 'D'], value=9),
-        dissipation(name=['A', 'B', 'D'], value=14),
-        dissipation(name=['B', 'D'], value=7),
+assert(sorted(getDiss_tgt('C', ['A', 'B', 'C', 'D'], allInters),
+              key=operator.attrgetter('value')) ==
+       [dissipation(name=[[]], value=1),
         dissipation(name=['D'], value=2),
-        dissipation(name=[[]], value=1)])
+        dissipation(name=['B'], value=4),
+        dissipation(name=['A'], value=5),
+        dissipation(name=['B', 'D'], value=7),
+        dissipation(name=['A', 'D'], value=9),
+        dissipation(name=['A', 'B'], value=11),
+        dissipation(name=['A', 'B', 'D'], value=14)])
 
 d = getDiss_glb(['A', 'B', 'C', 'D'], allInters)
 assert(sorted(d.iteritems(), key=operator.itemgetter(1)) ==
@@ -496,7 +497,7 @@ assert(pprintDiss([liA, liB, liC, liD]) ==
        """var connsX = [
 {groups: "1", value: "13"},
 {groups: "1,3", value: "10"},
-{groups: "0,1,2,3", value: "1"},
+{groups: "0,1,2", value: "2"},
 {groups: "1,2,3", value: "5"},
 {groups: "0,2", value: "7"},
 {groups: "0,3", value: "8"},
@@ -505,11 +506,10 @@ assert(pprintDiss([liA, liB, liC, liD]) ==
 {groups: "0", value: "12"},
 {groups: "3", value: "15"},
 {groups: "2", value: "14"},
-{groups: "0,1,2", value: "2"},
+{groups: "0,1,2,3", value: "1"},
 {groups: "0,1,3", value: "3"},
 ];
 """)
-
 
 assert(pprintDiss([(liA, 'foo'), (liB, 'bar'),
                    (liC, 'scoiattolo'), (liD, 'gattino')]) ==
@@ -524,9 +524,9 @@ assert(pprintDiss([(liA, 'foo'), (liB, 'bar'),
 {groups: "gattino", value: "15"},
 {groups: "bar,gattino", value: "10"},
 {groups: "bar,foo,scoiattolo", value: "2"},
-{groups: "bar,foo,gattino,scoiattolo", value: "1"},
-{groups: "gattino,scoiattolo", value: "11"},
 {groups: "bar,scoiattolo", value: "9"},
+{groups: "gattino,scoiattolo", value: "11"},
+{groups: "bar,foo,gattino,scoiattolo", value: "1"},
 {groups: "foo,gattino,scoiattolo", value: "4"},
 ];
 """)
