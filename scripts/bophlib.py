@@ -210,13 +210,19 @@ def facto(nd, subUns, target, lvl,
         return out
 
 def subunEq(subun1, subun2):
-    # equality for subuns
-    # wow finally using dynamic typing in the python way!
-    # len(.) gives non zero for endpts names, and zero for []
-    pprint = lambda x: x if len(x) > 0 else 'ROOT'
-    return set(map(pprint, subun1.name)) == \
-        set(map(pprint, subun2.name)) and \
-        subun1.level == subun2.level
+    # here we have to go f.a.s.t.
+    #
+    if subun1.name:
+        if subun2.name:
+            return sorted(subun1.name) == sorted(subun2.name) and \
+                subun1.level == subun2.level
+        else:
+            return False
+    else:
+        if subun2.name:
+            return False
+        else:
+            return subun1.level == subun2.level
 
 def getUniqueNodes(endptsList):
     # if two paths are the same up to reordering,
