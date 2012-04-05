@@ -100,15 +100,6 @@ def remEmpty(lis):
             return lis[:cnt] + lis[(cnt+1):]
     raise exceptions.Exception('empty non found')
 
-def genMap(IDList):
-    removeLast = lambda x: x[:-1]
-    # removing last elem in up-path of the lattice
-    # is a key point. Otherwise the concept of
-    # `ensemble on top of chain` is meaningless,
-    # since `empty` is on top of all chains.
-    return map(removeLast,
-               [p for p in itertools.permutations(IDList)])
-
 def listByID(listlist):
     # this is to store reference to the lists,
     # so that I can do all my computation symbolically,
@@ -187,7 +178,7 @@ def getCard(pathFromBottom, allInters, allNames):
 # mock function
 ## getCard = lambda x: 1
 
-def facto(nd, subUns, target, lvl, interMap,
+def facto(nd, subUns, target, lvl,
           numSet, allInters, allNames, tab=''):
     # note: node are ident by path from the bottm,
     # so it isn't real clear how to refer to the lower terminal
@@ -213,7 +204,7 @@ def facto(nd, subUns, target, lvl, interMap,
         for child in getChildrByTarget(nd, allNames, target):
             appToValue(out,
                        facto(child, [subun(name=nd, level=lvl)] + subUns,
-                             target, lvl+1, interMap, numSet, allInters,
+                             target, lvl+1, numSet, allInters,
                              allNames, tab=tab+' '))
         ## print tab + 'facto:: return from node', nd
         return out
@@ -322,6 +313,7 @@ def deMoivre(endpt, allInters, nameList):
                 zip(sign,
                     map(lambda js: computeInters(js, allInters, nameList),
                         jSubs))))
+    print 'Computed De Moivre for ' + str(endpt.node)
     return dissipation(name=endpt.node,
                        value = currentInters - subunValue)
 
@@ -334,18 +326,25 @@ def getDiss_tgt(target, nameList, allInters):
     eptLi = {}
     for e in list(set(nameList) - set([target])):
         appToValue(eptLi, facto([e], [subun(name=[[]], level=0)],
-                                target, 1, genMap(nameList),
+                                target, 1,
                                 len(nameList), allInters, nameList))
-        print 'Done with target [' + e + ']'
+        print '  done with step [' + e + ']'
+    # just to find a key in eptLi
+    for k in eptLi:
+        break
+    print ('merging ' + str(len(eptLi)) + ' nodes, ' +
+           str(len(eptLi[k])) + ' nested levels each...')
     eptLi_nodupes = appToValue(mergeAllNodes(eptLi), 
                                {node([[]], nameList, upPath()).nrmUpStr():
                                     endpoint(node=[[]], cardi=1, inBelly=[])})
+    print 'merged nodes'
     dissLi = multiDeMoivre(eptLi_nodupes.values(), allInters, nameList)
     return dissLi
 
 def getDiss_glb(nameList, allInters):
     diss_dict = {}
     for name in nameList:
+        print 'processing target [' + name + ']'
         for diss in getDiss_tgt(name, nameList, allInters):
             ep_dwnstr = node(diss.name, nameList, upPath()).nrmDwnStr()
             if ep_dwnstr not in diss_dict:

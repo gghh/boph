@@ -35,10 +35,6 @@ assert(remEmpty(remDupes(allChoices(['a', 'b', 'c']))) ==
         ['a', 'b'], ['a', 'c'], ['b', 'c'],
         ['a', 'b', 'c']])
 
-assert(genMap(['a', 'b', 'c']) ==
-       [('a', 'b'), ('a', 'c'), ('b', 'a'),
-        ('b', 'c'), ('c', 'a'), ('c', 'b')])
-
 li1 = range(10)
 li2 = range(5, 15)
 li3 = range(13, 20) + range(3)
@@ -98,14 +94,14 @@ allInters = intersLookup(listRefs)
 endptsList = \
     (appToValue(\
         facto(['b'], [subun(name=[[]], level=0)],
-              'a', 1, genMap(['a', 'b', 'c', 'd']), 4,
+              'a', 1, 4,
               allInters, ['a', 'b', 'c', 'd']),
         appToValue(\
                 facto(['c'], [subun(name=[[]], level=0)],
-                      'a', 1, genMap(['a', 'b', 'c', 'd']), 4,
+                      'a', 1, 4,
                       allInters, ['a', 'b', 'c', 'd']),
                 facto(['d'], [subun(name=[[]], level=0)],
-                      'a', 1, genMap(['a', 'b', 'c', 'd']), 4,
+                      'a', 1, 4,
                       allInters, ['a', 'b', 'c', 'd']))))
 
 # you always have to add ROOT (the all-in intersection) by hand,
@@ -181,7 +177,7 @@ listRefs = listByID([(li1, 'a'),
 allInters = intersLookup(listRefs)
 
 assert(facto(['b'], [subun(name=[[]], level=0)],
-             'a', 1, genMap(['a', 'b', 'c']), 3,
+             'a', 1, 3,
              allInters, ['a', 'b', 'c']) ==
        {'b': [endpoint(node=['b'],
                        cardi=0,
@@ -202,7 +198,7 @@ listRefs = listByID([(li1, 'a'),
 allInters = intersLookup(listRefs)
 
 assert(facto(['b'], [subun(name=[[]], level=0)],
-             'a', 1, genMap(['a', 'b', 'c', 'd']), 4,
+             'a', 1, 4,
               allInters, ['a', 'b', 'c', 'd']) ==
 
        {'b/d': [endpoint(node=['b', 'd'], 
@@ -391,14 +387,14 @@ assert(sorted(dissList, key=operator.attrgetter('value')) ==
 
 eptsLi_tA = (appToValue(\
         facto(['B'], [subun(name=[[]], level=0)],
-              'A', 1, genMap(['A', 'B', 'C', 'D']), 4,
+              'A', 1, 4,
               allInters, ['A', 'B', 'C', 'D']),
         appToValue(\
             facto(['C'], [subun(name=[[]], level=0)],
-                  'A', 1, genMap(['A', 'B', 'C', 'D']), 4,
+                  'A', 1, 4,
                   allInters, ['A', 'B', 'C', 'D']),
             facto(['D'], [subun(name=[[]], level=0)],
-                  'A', 1, genMap(['A', 'B', 'C', 'D']), 4,
+                  'A', 1, 4,
                   allInters, ['A', 'B', 'C', 'D']))))
 
 eptsLi_tA_nodupes = (appToValue(\
