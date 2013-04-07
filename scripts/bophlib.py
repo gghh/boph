@@ -83,7 +83,7 @@ def allChoices(srcList):
             out += map(complSrcList, choose_n(tot - (i + 1), srcList))
         else:
             out += choose_n(i, srcList)
-        print 'done with symbols for level', i
+        # print 'done with symbols for level', i
     return out
 
 def remDupes(listlist):
@@ -127,7 +127,7 @@ def inters_n(listlist):
     return out
     
 def intersLookup(listRefs):
-    print 'computing intersections lookup table'
+    # print 'computing intersections lookup table'
     toInters = remEmpty(remDupes(allChoices(listRefs.keys())))
     doInter = lambda s, t: set(s).intersection(set(t))
 
@@ -280,7 +280,7 @@ def deMoivre(endpt, allInters, nameList):
                 zip(sign,
                     map(lambda js: computeInters(js, allInters, nameList),
                         lvlSubs))))
-    print 'Computed De Moivre for ' + str(endpt.node)
+    # print 'Computed De Moivre for ' + str(endpt.node)
     return dissipation(name=endpt.node,
                        value = currentInters - subunValue)
 
@@ -295,23 +295,23 @@ def getDiss_tgt(target, nameList, allInters):
         mergeEpts(eptLi, facto([e], {'': subun(name=[[]], level=0)},
                                target, 1,
                                len(nameList), allInters, nameList))
-        print '  done with step [' + e + ']'
+        # print '  done with step [' + e + ']'
     # just to find a key in eptLi
     for k in eptLi:
         break
-    print ('merging ' + str(len(eptLi)) + ' nodes, ' +
-           str(len(eptLi[k])) + ' nested levels each...')
+    # print ('merging ' + str(len(eptLi)) + ' nodes, ' +
+    #       str(len(eptLi[k])) + ' nested levels each...')
     eptLi = mergeEpts(eptLi,
                       {node([[]], nameList, upPath()).nrmUpStr():
                            endpoint(node=[[]], cardi=1, inBelly={})})
-    print 'merged nodes'
+    # print 'merged nodes'
     dissLi = multiDeMoivre(eptLi.values(), allInters, nameList)
     return dissLi
 
 def getDiss_glb(nameList, allInters):
     diss_dict = {}
     for name in nameList:
-        print 'processing target [' + name + ']'
+        # print 'processing target [' + name + ']'
         for diss in getDiss_tgt(name, nameList, allInters):
             ep_dwnstr = node(diss.name, nameList, upPath()).nrmDwnStr()
             if ep_dwnstr not in diss_dict:
@@ -327,20 +327,55 @@ def getDiss_inlists(listlist):
     return getDiss_glb(map(str, listRefs.keys()), allInters)
     
 
-def pprintDiss(listlist):
+def pprintDiss(listlist, out_format='csv'):
+    names = [e[1] for e in listlist]
+    li = [e[0] for e in listlist]
+    ids = map(str, range(len(names)))
+    names_map = dict(zip(ids, names))
+    listlist = zip(li, ids)
     diss_dict = getDiss_inlists(listlist)
-    lines = ['{groups: "%s", value: %s},' \
-                % (str(k).replace('/',','), str(diss_dict[k]))
-            for k in diss_dict]
-    # remove last comma, make single str
-    lines = '\n'.join(lines[:-2]) + '\n' 
-    return "var connsX = [\n" + lines + "];\n"
+    diss_dict_nonil = []
+    for k, v in diss_dict.iteritems():
+        if v > 0:
+            diss_dict_nonil.append((k, v))
+    diss_dict_nonil = dict(diss_dict_nonil)
+    if out_format == 'csv':
+        out = ''
+        for k in diss_dict_nonil:
+            out += 'group,value\n'
+            eps = k.split('/')
+            for ep in eps:
+                out += str(ep) + ',' + str(diss_dict_nonil[k]) + '\n'
+        out += 'labels\n'
+        for idx in range(len(names_map)):
+            out += names_map[str(idx)] + '\n'
+        return out
+    elif out_format == 'js':
+        edge = lambda x, y: '{group: %s, value: %s}' % (x, str(y))
+        connections = []
+        for k in diss_dict_nonil:
+            eps = k.split('/')
+            edges = []
+            for ep in eps:
+                edges.append(edge(ep, diss_dict_nonil[k]))
+            connections.append(',\n\t'.join(edges))
+        connections = map(lambda x: '[\n\t' + x + '\n]', connections)
+        labels = []
+        for idx in range(len(names_map)):
+            labels.append(str(idx) + ': "' + names_map[str(idx)] + '"')
+        labels = ',\n\t'.join(labels)
+        labels = 'labels = {\n\t' + labels + '\n};\n'
+        connections = 'connections = [ ' + ',\n'.join(connections) + ' ];\n'
+        return connections + '\n\n' + labels
+        
 
 if __name__ == '__main__':
-    liA = [1,2,3,4]
-    liB = [4,5,6,7,8,9]
-    liC = [7,8,9,10,11,12]
-    liD = [1,4,7]
 
-    print pprintDiss([(liA, 'foo'), (liB, 'bar'),
-                      (liC, 'scoiattolo'), (liD, 'gattino')])
+    nice_people = ['charline', 'martin', 'benedikt', 'camilla']
+    rich_people = ['sebastian', 'camilla']
+    smart_people = ['larry', 'camilla', 'charline', 'gustavo', 'audrey']
+    
+    print pprintDiss([(nice_people, 'nice_people'),
+                      (rich_people, 'rich_people'),
+                      (smart_people, 'smart_people')],
+                     out_format='csv')
