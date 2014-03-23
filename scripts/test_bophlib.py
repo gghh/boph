@@ -1,6 +1,6 @@
 import unittest
 import operator
-from intersections import *
+from bophlib import *
 
 
 class testNChooseK(unittest.TestCase):
@@ -301,6 +301,30 @@ class testGetCard(unittest.TestCase):
         self.assertTrue(getCard(('1', '2', '3'), allInters,
                                 map(str, listRefs.keys())) == 
                         10)
+
+class testBaseCase(unittest.TestCase):
+
+    def test_basecase(self):
+        A = range(3)
+        B = range(3)
+        C = range(3)
+        
+        listlist = [(A, 'A'), (B, 'B'), (C, 'C')]
+        
+        names = [e[1] for e in listlist]
+        li = [e[0] for e in listlist]
+        ids = map(str, range(len(names)))
+        names_map = dict(zip(ids, names))
+        listlist = zip(li, ids)
+        
+        self.assertTrue(getDiss_inlists(listlist) ==
+                        {'1/2': 0,
+                         '0/2': 0,
+                         '0/1': 0,
+                         '1': 0,
+                         '0': 0,
+                         '2': 0,
+                         '0/1/2': 3})
 
 class completeTests(unittest.TestCase):
 

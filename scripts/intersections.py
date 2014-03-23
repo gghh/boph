@@ -303,7 +303,9 @@ def getDiss_tgt(target, nameList, allInters):
     #       str(len(eptLi[k])) + ' nested levels each...')
     eptLi = mergeEpts(eptLi,
                       {node([[]], nameList, upPath()).nrmUpStr():
-                           endpoint(node=[[]], cardi=1, inBelly={})})
+                           endpoint(node=[[]],
+                                    cardi=getCard([[]], allInters, nameList),
+                                    inBelly={})})
     # print 'merged nodes'
     dissLi = multiDeMoivre(eptLi.values(), allInters, nameList)
     return dissLi
